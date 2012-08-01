@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+
+<NETWORK>
+
+<NAME>nocycle</NAME>
+
+<VARIABLE TYPE="preference">
+    <NAME>a</NAME>
+    <OUTCOME>0</OUTCOME>
+    <OUTCOME>1</OUTCOME>
+</VARIABLE>
+
+<VARIABLE TYPE="preference">
+    <NAME>b</NAME>
+    <OUTCOME>0</OUTCOME>
+    <OUTCOME>1</OUTCOME>
+</VARIABLE>
+
+<VARIABLE TYPE="preference">
+    <NAME>c</NAME>
+    <OUTCOME>0</OUTCOME>
+    <OUTCOME>1</OUTCOME>
+</VARIABLE>
+
+ <CONDITIONAL-PREFERENCE>
+     <FOR>a</FOR>
+     <TABLE>
+          <CPTROW><PARENTVALUE></PARENTVALUE><PREFERENCE>0>1</PREFERENCE></CPTROW>
+     </TABLE>
+ </CONDITIONAL-PREFERENCE>
+ 
+ <CONDITIONAL-PREFERENCE>
+     <FOR>b</FOR>
+     <GIVEN>c</GIVEN>
+     <TABLE>
+          <CPTROW><PARENTVALUE>c=0</PARENTVALUE><PREFERENCE>1>0</PREFERENCE></CPTROW>
+     </TABLE> 
+ </CONDITIONAL-PREFERENCE>
+ 
+ <CONDITIONAL-PREFERENCE>
+     <FOR>c</FOR>
+     <GIVEN>b</GIVEN>
+     <TABLE>
+          <CPTROW><PARENTVALUE>b=0</PARENTVALUE><PREFERENCE>0>1</PREFERENCE></CPTROW>
+     </TABLE>
+ </CONDITIONAL-PREFERENCE>
+ 
+<!-- Relative Importance Information -->
+
+     <REL-IMP>
+           <IMP-VARIABLE>a</IMP-VARIABLE>
+           		<IMP-THAN>b</IMP-THAN>
+     </REL-IMP>
+     
+     <REL-IMP>
+           <IMP-VARIABLE>b</IMP-VARIABLE>
+     </REL-IMP>
+     
+     <REL-IMP>
+           <IMP-VARIABLE>c</IMP-VARIABLE>
+     </REL-IMP>
+
+</NETWORK>
+
