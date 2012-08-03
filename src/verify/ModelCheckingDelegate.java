@@ -81,7 +81,6 @@ public class ModelCheckingDelegate {
 			System.out.println();
 		}
 //		PerformanceAnalyzer.addLatestPerformanceRecord(null);
-		System.out.println("output file: " +outputFile);
 		return outputFile;
 	}
 	
