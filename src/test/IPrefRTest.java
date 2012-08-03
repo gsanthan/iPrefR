@@ -23,7 +23,7 @@ public class IPrefRTest {
 		
 		String xmlFile = new String();
 		String smvFile = new String();
-		/*
+		
 		xmlFile = "examples\\nocycle-cpnet.xml";
 		smvFile = testReasonerForTranslation(xmlFile, PreferenceInputType.TCPnet);
 		testReasonerForConsistency(smvFile);
@@ -44,7 +44,7 @@ public class IPrefRTest {
 		testReasonerForDominanceTesting(smvFile);
 		testReasonerForNextPreferred(smvFile);
 		testReasonerForWeakOrder(smvFile);
-		*/
+		
 		String cinetFile = "examples\\nocycle-cinet.txt";
 		smvFile = testReasonerForTranslation(cinetFile, PreferenceInputType.CInet);
 		testReasonerForConsistency(smvFile);
