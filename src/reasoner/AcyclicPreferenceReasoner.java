@@ -46,6 +46,12 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 		
 		System.out.println("Does " + morePreferredOutcome + " dominate " + lessPreferredOutcome + "?");
 		
+		//Don't need to compute anything if the outcomes are the same
+		if(morePreferredOutcome.equals(lessPreferredOutcome)) {
+			System.out.println("Dominance does not hold");
+			return false;
+		}
+		
 		//Make a copy the original SMV file containing the model so that we can append specs for computing dominance 
 		PreferenceMetaData pmd = new PreferenceMetaData(smvFile);
 		pmd.setWorkingFile(smvFile+"-copy-dominance.smv");
@@ -360,7 +366,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 			}
 		}
 		//CTL property specifying that there is no path from outcome1 to outcome 2 (outcome2 is better than outcome1) 	
-		spec = SpecHelper.getCTLSpec("!(("+ outcome1 + " -> EX EF (" + outcome2 + "))) ","counterExampleForDominanceTest"," (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
+		spec = SpecHelper.getCTLSpec("(("+ outcome1 + " -> !EX EF (" + outcome2 + "))) ","counterExampleForDominanceTest"," (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
 		return spec;
 	}
 }
