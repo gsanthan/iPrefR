@@ -23,7 +23,7 @@ public class IPrefRTest {
 		
 		String xmlFile = new String();
 		String smvFile = new String();
-		
+		/*
 		xmlFile = "examples\\nocycle-cpnet.xml";
 		smvFile = testReasonerForTranslation(xmlFile, PreferenceInputType.TCPnet);
 		testReasonerForConsistency(smvFile);
@@ -44,8 +44,8 @@ public class IPrefRTest {
 		testReasonerForDominanceTesting(smvFile);
 		testReasonerForNextPreferred(smvFile);
 		testReasonerForWeakOrder(smvFile);
-		
-		String cinetFile = "examples\\cinet.txt";
+		*/
+		String cinetFile = "examples\\nocycle-cinet.txt";
 		smvFile = testReasonerForTranslation(cinetFile, PreferenceInputType.CInet);
 		testReasonerForConsistency(smvFile);
 		testReasonerForDominanceTesting(smvFile);
@@ -73,7 +73,9 @@ public class IPrefRTest {
 		PreferenceReasoner p1 = new AcyclicPreferenceReasoner(smvFile);
 		p1.isConsistent();
 		
+		System.out.println(p1.dominates(new HashSet<String>(Arrays.asList(new String[]{})),new HashSet<String>(Arrays.asList(new String[]{}))));
 		System.out.println(p1.dominates(new HashSet<String>(Arrays.asList(new String[]{})),new HashSet<String>(Arrays.asList(new String[]{"a"}))));
+		System.out.println(p1.dominates(new HashSet<String>(Arrays.asList(new String[]{"a"})),new HashSet<String>(Arrays.asList(new String[]{}))));
 		System.out.println(p1.dominates(new HashSet<String>(Arrays.asList(new String[]{"b"})),new HashSet<String>(Arrays.asList(new String[]{}))));
 	}
 	
