@@ -172,9 +172,21 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 			
 			String variableName = (String) iterator1.next();
 			
-			//Don't Initialize the change variables to 0 (in the start state, chVi=0) 
-			//-- It will affect functioning of computing getStateInTerminalSCCFromSeed in SCCHelper 
-			//FileUtil.writeLineToFile(w, "  init(ch"+variableName+") := 0;");
+			//TODO: TAKE CARE FOR ACYCLIC vs CYCLIC preference reasoning!!
+			//-- IMPORTANT: Don't Initialize the change variables to 0 (in the start state, chVi=0)
+			//-- It will affect functioning of computing getStateInTerminalSCCFromSeed in SCCHelper
+			//-- IMPORTANT: But, for reasoning with acyclic induced preference graphs, it is neccessary to initialize them to 0.
+			//-- REASON: Otherwise, NuSMV will give incorrect result:
+			//-- During model checking, NuSMV checks if the CTL is verified for ALL initial states including the outcome with different assignments to change variables.
+			//-- Example: Suppose we check if there is a path from \alpha to \beta. 
+			//-- 		  If there is a transition from \alpha to \gamma from a state where variables correspond to \alpha, 
+			//--		  but change variables are such that there is a transition to \gamma, and also there is no path from \gamma to \beta.
+			//--		  Then, even if there is a state where variables correspond to \alpha and change variables correspond to a transition to \beta, 
+			//--		  NuSMV will not return true for \alpha -> EF \beta because it can initialize change variables such that there is a transition from \alpha that takes it to \gamma and with no way of reaching \beta.
+			//-- If the initialization of change variables is to be needed for some reason,
+			//-- consider the possible workaround:
+			//-- Instead of initializing change variables to 0, insert an explicit transition from all states to themselves (self-loops) by including (guard : {0,1}) for the variables.
+			FileUtil.writeLineToFile(w, "  init(ch"+variableName+") := 0;");
 			
 			//Write 'next(var):= case'
 			FileUtil.writeLineToFile(w, "  next("+variableName+") :=");
