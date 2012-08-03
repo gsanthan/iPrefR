@@ -134,7 +134,9 @@ public class Constants {
 //	public static String SMV_EXEC_COMMAND = (CURRENT_MODEL_CHECKER==MODEL_CHECKER.CadenceSMV)?"C:\\Program Files\\SMV\\bin\\smv.exe ":"nusmv ";
 	
 	static {
-		File propertiesFile = new File("config\\reasoner.properties");
+		String fs = System.getProperty("file.separator");
+		
+		File propertiesFile = new File("config"+fs+fs+"reasoner.properties");
 		FileReader propertiesReader = null;
 		try {
 			 propertiesReader = new FileReader(propertiesFile);
