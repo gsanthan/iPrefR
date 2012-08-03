@@ -1,0 +1,5 @@
+VARIABLES
+a,b,c,d
+PREFERENCES
+{d};{}:{c};{b}
+{b};{a}:{d};{c}
