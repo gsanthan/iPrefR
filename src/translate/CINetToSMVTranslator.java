@@ -31,6 +31,11 @@ import util.FileUtil;
  */
 public class CINetToSMVTranslator implements PreferenceInputTranslator {
 
+	
+	public String convertToSMV(String cinetFile, int sampleSize) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
+		//By default, assume forward model, i.e., improving flip
+		return convertToSMV(cinetFile, sampleSize, true);
+	}
 	/**
 	 * Translates CI-nets specified in text format into SMV model suitable as input for model checkers Cadence SMV and NuSMV.
  	 * Also generates random 'sampleSize' specs, i.e., dominance test cases and saves them in a separate '.spec' file. 
@@ -40,9 +45,14 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 	 * @author gsanthan
 	 * 
 	 */
-	public String convertToSMV(String cinetFile, int sampleSize) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
-		boolean improvingFlip = true;
-		String smvFile = cinetFile.substring(0, cinetFile.length()-4).concat(".smv");
+	public String convertToSMV(String cinetFile, int sampleSize, boolean improvingFlip) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
+		
+		String smvFile = new String();
+		if(improvingFlip) {
+			smvFile = cinetFile.substring(0, cinetFile.length()-4).concat(".smv");
+		} else {
+			smvFile = cinetFile.substring(0, cinetFile.length()-4).concat("-reverse").concat(".smv");
+		}
 		BufferedReader r = new BufferedReader(new FileReader(cinetFile));
 		
 		// Create/open the smv file where we are going to save the translated code 
@@ -121,13 +131,16 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 		FileUtil.writeLineToFile(w, "ASSIGN");
 		
 
-		
+		//TODO For next preferred with cycles, better have this in here!
 		// Write the assignments in terms of next(var) : = case ... esac; statements
 		for (varIndex=0; varIndex<variables.length; varIndex++) {
 			String var = variables[varIndex];
 			//Initialize the change variables to 0 (in the start state, chVi=0)
-//			FileUtil.writeLineToFile(w, "  init(ch"+var+") := 0;");
-			
+			FileUtil.writeLineToFile(w, "  init(ch"+var+") := 0;");
+		}
+		
+		for (varIndex=0; varIndex<variables.length; varIndex++) {
+			String var = variables[varIndex];
 			//Write 'next(var):= case'
 			FileUtil.writeLineToFile(w, "  next("+var+") :=");
 			
@@ -190,7 +203,9 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 			FileUtil.writeLineToFile(w, "    case");	
 		}		
 		
-		FileUtil.writeLineToFile(w, "      gch=1: 0;");
+		//TODO For next preferred with cycles, better have this in
+		FileUtil.writeLineToFile(w, "      --gch=1: 0;");
+		
 		for (String g : globalChange) {
 			g = g.substring(0,g.lastIndexOf(":"));
 			g = g + ": 1;";
