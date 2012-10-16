@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import exception.PreferenceReasonerException;
+
 import model.OutcomeSequence;
 import model.PreferenceMetaData;
 import model.WorkingPreferenceModel;
@@ -22,6 +24,10 @@ public abstract class PreferenceReasoner {
 	 * The SMV model file
 	 */
 	public String smvFile;
+	/**
+	 * The reverse SMV model file
+	 */
+	public String smvFileReverse;
 	/**
 	 * Preference variables in the model
 	 */
@@ -59,6 +65,23 @@ public abstract class PreferenceReasoner {
 		resetGeneratedOutcomes();
 	}
 	
+	PreferenceReasoner(String smvFile, String smvFileReverse) {
+		if(smvFile == null || smvFile.trim().length()==0) {
+			throw new RuntimeException("The translated preference specification SMV file name is empty!");
+		}
+		if(smvFileReverse == null || smvFileReverse.trim().length()==0) {
+			throw new RuntimeException("The translated preference specification (reverse) SMV file name is empty!");
+		}
+		this.smvFile = smvFile;
+		this.smvFileReverse = smvFileReverse;
+		WorkingPreferenceModel.setPrefMetaData(new PreferenceMetaData(smvFile));
+		WorkingPreferenceModel.setPrefMetaDataReverse(new PreferenceMetaData(smvFileReverse));
+		this.variables = WorkingPreferenceModel.getPrefMetaData().getVariables();
+		currentMaximalOutcomes = new ArrayList<String[]>();
+		invariants = new ArrayList<String>();
+		resetGeneratedOutcomes();
+	}
+	
 	/**
 	 * Dominance Testing: Does morePreferredOutcome dominate lessPreferredOutcome? Returns true or false.
 	 * 
@@ -84,8 +107,9 @@ public abstract class PreferenceReasoner {
 	 *    
 	 * @return next preferred outcome 
 	 * @throws IOException
+	 * @throws PreferenceReasonerException 
 	 */
-	public abstract Set<String> nextPreferred() throws IOException;
+	public abstract Set<String> nextPreferred() throws IOException, PreferenceReasonerException;
 	
 	/**
 	 * Resets the session and makes the reasoner ready for computing the next preferred outcomes in sequence from the top most level.
@@ -98,24 +122,27 @@ public abstract class PreferenceReasoner {
 	 * @param ignoredOutcomes
 	 * @return The non-dominated set of elements in the current model when ignoredOutcomes are removed   
 	 * @throws IOException
+	 * @throws PreferenceReasonerException 
 	 */
-	public abstract OutcomeSequence computeNextPreferredSetIgnoring(OutcomeSequence ignoredOutcomes) throws IOException;
+	public abstract OutcomeSequence computeNextPreferredSetIgnoring(OutcomeSequence ignoredOutcomes) throws IOException, PreferenceReasonerException;
 	
 	/**
 	 * Computes the set of outcomes currently at the top-most level 
 	 * 
 	 * @return The set of non-dominated elements in the current model used 
 	 * @throws IOException
+	 * @throws PreferenceReasonerException 
 	 */
-	public abstract OutcomeSequence computeCurrentPreferredSet() throws IOException; 
+	public abstract OutcomeSequence computeCurrentPreferredSet() throws IOException, PreferenceReasonerException; 
 	
 	/**
 	 * Computes a sequence of set of outcomes at subsequent levels in an optimistic minimal weak order extension consistent with the induced preference graph.
 	 *  
 	 * @return List of set of outcomes (corresponding to each level in the weak order) 
 	 * @throws IOException
+	 * @throws PreferenceReasonerException 
 	 */
-	public abstract List<OutcomeSequence> generateWeakOrder() throws IOException;
+	public abstract List<OutcomeSequence> generateWeakOrder() throws IOException, PreferenceReasonerException;
 	
 	/**
 	 * Removes specified outcomes in the induced preference graph from the model
