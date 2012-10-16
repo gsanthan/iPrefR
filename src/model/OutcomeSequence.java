@@ -43,6 +43,7 @@ public class OutcomeSequence {
 		outcomeSequence.add(outcome);
 	}
 	
+	
 	/**
 	 * Returns the sequence of outcomes stored in this OutcomeSequence as a List of String arrays 
 	 * @return Sequence of outcomes stored in this OutcomeSequence object as a List of String arrays 
@@ -95,6 +96,10 @@ public class OutcomeSequence {
 	
 	public void addOutcome(Set<String> outcome) {
 		outcomeSequence.add(outcome);
+	}
+	
+	public void addOutcome(String[] outcome) {
+		outcomeSequence.add(new HashSet<String>(Arrays.asList(outcome)));
 	}
 	
 	public void addOutcome(String[] variables, String encodedOutcome) {
