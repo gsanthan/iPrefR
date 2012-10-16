@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import exception.PreferenceReasonerException;
+
 import model.OutcomeSequence;
 import model.PreferenceMetaData;
 import model.WorkingPreferenceModel;
@@ -135,7 +137,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 	/* (non-Javadoc)
 	 * @see translate.PreferenceReasoner#nextPreferred()
 	 */
-	public Set<String> nextPreferred() throws IOException {
+	public Set<String> nextPreferred() throws IOException, PreferenceReasonerException {
 		
 		//Append the spec corresponding to the property that there is no (maximal) outcome 
 		//in the current (induced preference graph) model 
@@ -167,7 +169,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 			pref = null;
 		} else {
 			//Parse the found next preferred outcome from the model checker's output file
-			String[] currentPreferred = TraceFormatterFactory.createTraceFormatter().parseCounterExampleFromTrace(WorkingPreferenceModel.getPrefMetaData());
+			String[] currentPreferred = TraceFormatterFactory.createTraceFormatter().parseCounterExampleFromTrace(WorkingPreferenceModel.getPrefMetaData(), false);
 			
 			//Keep track of the maximal outcomes at the current level 
 			currentMaximalOutcomes.add(currentPreferred);
@@ -182,7 +184,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 	 * (non-Javadoc)
 	 * @see translate.PreferenceReasoner#generateWeakOrder()
 	 */
-	public List<OutcomeSequence> generateWeakOrder() throws IOException {
+	public List<OutcomeSequence> generateWeakOrder() throws IOException, PreferenceReasonerException {
 		//The to-be-computed weak order as a list of levels - each level has a set of outcome
 		List<OutcomeSequence> weakOrder = new ArrayList<OutcomeSequence>();
 		resetGeneratedOutcomes();
@@ -207,7 +209,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 	 * (non-Javadoc)
 	 * @see translate.PreferenceReasoner#computeCurrentPreferredSet()
 	 */
-	public OutcomeSequence computeCurrentPreferredSet() throws IOException {
+	public OutcomeSequence computeCurrentPreferredSet() throws IOException, PreferenceReasonerException {
 		
 		Set<String> next = null;
 		OutcomeSequence visited = new OutcomeSequence();
@@ -233,7 +235,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 	 * (non-Javadoc)
 	 * @see translate.PreferenceReasoner#computeNextPreferredSetIgnoring(test.OutcomeSequence)
 	 */
-	public OutcomeSequence computeNextPreferredSetIgnoring(OutcomeSequence ignoredOutcomes) throws IOException {
+	public OutcomeSequence computeNextPreferredSetIgnoring(OutcomeSequence ignoredOutcomes) throws IOException, PreferenceReasonerException {
 		//Remove ignored outcomes from the model
 		removeOutcomes(ignoredOutcomes);
 		return computeCurrentPreferredSet();
@@ -321,7 +323,8 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 			}
 		}
 		//CTL property specifying that there is a path from outcome1 to outcome 2 (outcome2 is better than outcome1) 	
-		spec = SpecHelper.getCTLSpec("("+ outcome1 + " -> EX EF (" + outcome2 + ")) ","dominance","-- "+ " (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
+//		spec = SpecHelper.getCTLSpec("("+ outcome1 + " -> EX EF (" + outcome2 + ")) ","dominance","-- "+ " (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
+		spec = SpecHelper.getCTLSpec("("+ outcome1 + " & " + SpecHelper.getInitChangeVariablesCondition() + " -> EX EF (" + outcome2 + ")) ","dominance","-- "+ " (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
 		return spec;
 	}
 	
@@ -366,7 +369,9 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 			}
 		}
 		//CTL property specifying that there is no path from outcome1 to outcome 2 (outcome2 is better than outcome1) 	
-		spec = SpecHelper.getCTLSpec("(("+ outcome1 + " -> !EX EF (" + outcome2 + "))) ","counterExampleForDominanceTest"," (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
+//		spec = SpecHelper.getCTLSpec("(("+ outcome1 + " -> !EX EF (" + outcome2 + "))) ","counterExampleForDominanceTest"," (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
+		spec = SpecHelper.getCTLSpec("(("+ outcome1 + " & " + SpecHelper.getInitChangeVariablesCondition() + " -> !EX EF (" + outcome2 + "))) ","dominance","-- "+ " (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
+		
 		return spec;
 	}
 }
