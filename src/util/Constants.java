@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 
+import exception.PreferenceReasonerException;
+
 /**
  * Stores all the constants used by the Preference Reasoner application
  * @author gsanthan
@@ -16,7 +18,11 @@ import java.util.Random;
  */
 public class Constants {
 
+	public static final String CONFIG_EXCEPTION_PROPERTIES = "config\\exception.properties";
+	public static final String CONFIG_REASONER_PROPERTIES = "config\\reasoner.properties";
+	
 	/**
+	 * 
 	 * 	Minimum number of variables to start experiments with
 	 */
 	public static int MIN_VAR_SIZE = 4;
@@ -134,22 +140,13 @@ public class Constants {
 //	public static String SMV_EXEC_COMMAND = (CURRENT_MODEL_CHECKER==MODEL_CHECKER.CadenceSMV)?"C:\\Program Files\\SMV\\bin\\smv.exe ":"nusmv ";
 	
 	static {
-		File propertiesFile = new File("config\\reasoner.properties");
-		FileReader propertiesReader = null;
+		String modelChecker = null;
 		try {
-			 propertiesReader = new FileReader(propertiesFile);
-		} catch (FileNotFoundException e) {
+			modelChecker = PropertiesManager.getProperty(CONFIG_REASONER_PROPERTIES,"model_checker_name", null);
+		} catch (PreferenceReasonerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Properties properties = new Properties();
-		try {
-			properties.load(propertiesReader);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		String modelChecker = properties.getProperty("model_checker_name", null);
 		if(modelChecker == null){
 			throw new RuntimeException("Unsupported Model Checker");
 		} else if (modelChecker.equals("cadenceSMV")) {
@@ -160,7 +157,12 @@ public class Constants {
 			throw new RuntimeException("Unsupported model checker");
 		}
 		 
-		SMV_EXEC_COMMAND = properties.getProperty("model_checker_command", null) + " ";
+		try {
+			SMV_EXEC_COMMAND = PropertiesManager.getProperty(CONFIG_REASONER_PROPERTIES,"model_checker_command", null) + " ";
+		} catch (PreferenceReasonerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		if(SMV_EXEC_COMMAND == null || SMV_EXEC_COMMAND.trim().length() == 0){
 			throw new RuntimeException("Invalid Model Checker Command");
 		}
