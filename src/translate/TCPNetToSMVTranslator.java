@@ -186,6 +186,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 			//-- If the initialization of change variables is to be needed for some reason,
 			//-- consider the possible workaround:
 			//-- Instead of initializing change variables to 0, insert an explicit transition from all states to themselves (self-loops) by including (guard : {0,1}) for the variables.
+			//-- Even better, simply initialize the model with (h_i=0) and include a conjunction of change variables (h_i=0) for all i in the dominance query: ((\alpha & /\_i(h_i=0)) -> EX EF \beta). 
 			FileUtil.writeLineToFile(w, "  init(ch"+variableName+") := 0;");
 			
 			//Write 'next(var):= case'
