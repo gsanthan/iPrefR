@@ -62,6 +62,7 @@ public class PreferenceMetaData {
 	 */
 	public PreferenceMetaData(String smvFile) {
 		try {
+			//TODO change the following code to read variables using generic translator, not TCP-net specific
 			this.variables = TCPNetToSMVTranslator.getVariablesFromSMVModel(smvFile);
 			Arrays.sort(variables);
 		} catch (IOException e) {
