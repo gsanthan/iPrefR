@@ -125,16 +125,19 @@ public class NuSMVTraceFormatter implements TraceFormatter {
 	 * (non-Javadoc)
 	 * @see verify.TraceFormatter#parseCounterExampleFromTrace(model.PreferenceMetaData)
 	 */
-	public String[] parseCounterExampleFromTrace(PreferenceMetaData pmd) throws FileNotFoundException, IOException {
+	public String[] parseCounterExampleFromTrace(PreferenceMetaData pmd, boolean firstStateOnly) throws FileNotFoundException, IOException {
 		
 		Set<String> variablesTrueInOutcome = new HashSet<String>();
-		if(Constants.CURRENT_MODEL_CHECKER==Constants.MODEL_CHECKER.NuSMV) {
-			BufferedReader reader = new BufferedReader (new FileReader(pmd.getCounterExampleFile()));
-			try{
-			String nextLine;
-			while((nextLine = reader.readLine()) != null) {
+		
+		BufferedReader reader = new BufferedReader (new FileReader(pmd.getCounterExampleFile()));
+		try{
+		String nextLine;
+		int counter=0;
+		while((nextLine = reader.readLine()) != null) {
+			if (!nextLine.startsWith("--")) {
 				for (String var : pmd.getVariables()) {
 					if(nextLine.indexOf(" " + var + " = ") != -1) {
+						counter++;
 						nextLine = nextLine.trim();
 						String varValuation = nextLine.substring(nextLine.length()-1);
 						if(varValuation.equalsIgnoreCase("1")) {
@@ -144,32 +147,13 @@ public class NuSMVTraceFormatter implements TraceFormatter {
 						}
 					}					
 				}
-			}
-			}finally{reader.close();}
-		} else if (Constants.CURRENT_MODEL_CHECKER==Constants.MODEL_CHECKER.CadenceSMV) {
-			BufferedReader reader = new BufferedReader (new FileReader(pmd.getCounterExampleFile()));
-			String nextLine;
-			try{
-			while((nextLine = reader.readLine()) != null) {
-				for (String var : pmd.getVariables()) {
-					if(nextLine.indexOf("\\" + var + "  = ") != -1) {
-						nextLine = nextLine.trim();
-						String varValuation = "";
-						if(!nextLine.endsWith(",")) {
-							varValuation = nextLine.substring(nextLine.length()-1);
-						} else {
-							varValuation = nextLine.substring(nextLine.length()-2,nextLine.length()-1);
-						}
-						if(varValuation.equalsIgnoreCase("1")) {
-							variablesTrueInOutcome.add(var);
-						} else if(varValuation.equalsIgnoreCase("0")){
-							variablesTrueInOutcome.remove(var);
-						}
-					}					
+				if(firstStateOnly && (counter >= pmd.getVariables().length)) {
+					break;
 				}
 			}
-			}finally{reader.close();}
 		}
+		}finally{reader.close();}
+		
 		return variablesTrueInOutcome.toArray(new String[]{});
 	}
 

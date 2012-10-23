@@ -157,7 +157,7 @@ public class CadenceSMVTraceFormatter implements TraceFormatter {
 	 * (non-Javadoc)
 	 * @see verify.TraceFormatter#parseCounterExampleFromTrace(model.PreferenceMetaData)
 	 */
-	public String[] parseCounterExampleFromTrace(PreferenceMetaData pmd) throws FileNotFoundException, IOException {
+	public String[] parseCounterExampleFromTrace(PreferenceMetaData pmd, boolean firstStateOnly) throws FileNotFoundException, IOException {
 		Set<String> outcome = new HashSet<String>();// First state/outcome in the trace
 		BufferedReader reader = new BufferedReader(new FileReader(pmd.getCounterExampleFile()));
 		String nextLine = "";
@@ -165,7 +165,10 @@ public class CadenceSMVTraceFormatter implements TraceFormatter {
 		while ((nextLine = reader.readLine()) != null) {
 			if (nextLine.indexOf("/* state ") != -1) {
 				outcome = parseOutcome(pmd, reader, nextLine);
-				//break; // Don't stop with the first outcome in the counter example file. 
+				if(firstStateOnly) {
+					break;
+				}
+				// Otherwise, don't stop with the first outcome in the counter example file. 
 				// If the counter example is a path, we will return the last outcome in the path.  
 			}
 		}
