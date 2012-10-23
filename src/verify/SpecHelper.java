@@ -40,6 +40,19 @@ public class SpecHelper {
 		return spec;
 	}
 	
+	public static String getInitChangeVariablesCondition() {
+		String spec = new String("(");
+		String[] variables = WorkingPreferenceModel.getPrefMetaData().getVariables();
+		for (String variable : variables) {
+			if(spec.trim().length()>1) {
+				spec = spec + " & ";
+			}
+			spec = spec + "ch" + variable+"=0";
+		}
+		spec = spec + ")";
+		return spec;
+	}
+	
 	/**
 	 * Generates SMV model code in constraint style for initializing a model to the set of states corresponding to an outcome.  
 	 * @param outcome
@@ -99,6 +112,11 @@ public class SpecHelper {
 		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
 			spec = propertyName + ": assert ( " + ltlSpec + " ); ";// + "/* " + comment + " */";
 		}
+		return spec;
+	}
+	
+	public static String getDefinitionSpec(String definitionName, String definition, String comment) {
+		String spec = "DEFINE " + definitionName + ":=" + definition + ";";
 		return spec;
 	}
 }
