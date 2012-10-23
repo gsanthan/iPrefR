@@ -388,4 +388,9 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 			throws IOException, PreferenceReasonerException {
 		throw new PreferenceReasonerException("Cyclic reasoning not supported in AcyclicPreferenceReasoner!");
 	}
+	
+	@Override
+	public OutcomeSequence nextPreferredWithCycles() throws IOException, PreferenceReasonerException {
+		throw new PreferenceReasonerException("Cyclic reasoning not supported in AcyclicPreferenceReasoner!");
+	}
 }

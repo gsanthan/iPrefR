@@ -128,6 +128,14 @@ public abstract class PreferenceReasoner {
 	public abstract OutcomeSequence nextPreferredWithCycles(OutcomeSequence psi_i_minus_1, OutcomeSequence psi_i_minus_2_to_psi_0) throws IOException, PreferenceReasonerException;
 	
 	/**
+	 * Similar to the parameterized version of nextPreferredWithCycles, except the parameters are not needed here and the PreferenceReasoner itself internally keeps track of all the outcomes computed so far.
+	 * @return Next level of outcomes
+	 * @throws IOException
+	 * @throws PreferenceReasonerException
+	 */
+	public abstract OutcomeSequence nextPreferredWithCycles() throws IOException, PreferenceReasonerException;
+	
+	/**
 	 * Resets the session and makes the reasoner ready for computing the next preferred outcomes in sequence from the top most level.
 	 */
 	public abstract void resetReasoner();

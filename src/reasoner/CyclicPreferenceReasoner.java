@@ -136,6 +136,8 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 		//particularly forget the previously computed outcomes at the current level and model constraints   
 		currentMaximalOutcomes = new ArrayList<String[]>();
 		invariants = new ArrayList<String>();
+		psi_i_minus_1 = new OutcomeSequence();
+		psi_i_minus_2_to_psi_0 = new OutcomeSequence();
 	}
 	
 	public OutcomeSequence findCycleContaining(Set<String> outcome, OutcomeSequence psi_i_minus_1_to_0) throws IOException, PreferenceReasonerException {
@@ -457,6 +459,34 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 		System.out.println("---");
 		
 		return psi_i;
+	}
+
+	OutcomeSequence psi_i_minus_1 = new OutcomeSequence();
+	OutcomeSequence psi_i_minus_2_to_psi_0 = new OutcomeSequence();
+	boolean allLevelsComputed = false;
+	public OutcomeSequence nextPreferredWithCycles() throws IOException, PreferenceReasonerException {
+		
+		if(allLevelsComputed) {
+			return null;
+		}
+		
+		if(psi_i_minus_2_to_psi_0 == null) {
+			psi_i_minus_2_to_psi_0 = new OutcomeSequence();
+			if(psi_i_minus_1 == null) {
+				psi_i_minus_1 = new OutcomeSequence();
+			}
+		}
+		
+		OutcomeSequence currentLevel = nextPreferredWithCycles(psi_i_minus_1, psi_i_minus_2_to_psi_0);
+		if(currentLevel != null && currentLevel.getOutcomeSequence().size()>0) {
+			psi_i_minus_2_to_psi_0.addOutcomeSequence(psi_i_minus_1);
+			psi_i_minus_1 = currentLevel;
+		} else {
+			currentLevel = null;
+			allLevelsComputed = true;
+		}
+
+		return currentLevel;
 	}
 	
 	/*
