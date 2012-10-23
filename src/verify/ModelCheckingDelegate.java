@@ -8,6 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
+import exception.PreferenceReasonerException;
+
 import model.PreferenceMetaData;
 import model.WorkingPreferenceModel;
 
@@ -30,10 +32,11 @@ public class ModelCheckingDelegate {
 	 * @param property Name of the property verified   
 	 * @return Name of the output file
 	 * @throws IOException
+	 * @throws PreferenceReasonerException 
 	 */
-	public static String verify(PreferenceMetaData prefMetaData, List<String> appendix, String property) throws IOException {
-		String smvFile = WorkingPreferenceModel.getPrefMetaData().getSmvFile();
-		String workingFile = WorkingPreferenceModel.getPrefMetaData().getWorkingFile();
+	public static String verify(PreferenceMetaData prefMetaData, List<String> appendix, String property) throws IOException, PreferenceReasonerException {
+		String smvFile = prefMetaData.getSmvFile();
+		String workingFile = prefMetaData.getWorkingFile();
 		
 		//Make a copy of the original file before appending the constraints and property specs
 		File working = new File(workingFile);
@@ -75,10 +78,11 @@ public class ModelCheckingDelegate {
 		String outputFile = new String();
 		try {
 			ModelChecker invoke = new ModelChecker();
-			outputFile = invoke.invokeModelChecker(Constants.SMV_EXEC_COMMAND,	workingFile, null);
+			outputFile = invoke.invokeModelChecker(prefMetaData, Constants.SMV_EXEC_COMMAND, workingFile, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println();
+			throw new PreferenceReasonerException("INVALID_MODELCHECKER_COMMAND");
 		}
 //		PerformanceAnalyzer.addLatestPerformanceRecord(null);
 		return outputFile;
@@ -92,7 +96,7 @@ public class ModelCheckingDelegate {
 	 * @throws IOException
 	 */
 	public static boolean findVerificationResult(PreferenceMetaData prefMetaData) throws IOException {
-		String outputFile = WorkingPreferenceModel.getPrefMetaData().getOutputFile();
+		String outputFile = prefMetaData.getOutputFile();
 		BufferedReader r = FileUtil.openFileForRead(outputFile);
 		try{
 			if(r == null) {
