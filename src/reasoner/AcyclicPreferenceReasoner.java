@@ -374,4 +374,18 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 		
 		return spec;
 	}
+
+	@Override
+	public OutcomeSequence nextPreferredWithCycles(
+			OutcomeSequence psi_i_minus_1,
+			OutcomeSequence psi_i_minus_2_to_psi_0) throws IOException,
+			PreferenceReasonerException {
+		throw new PreferenceReasonerException("Cyclic reasoning not supported in AcyclicPreferenceReasoner!");
+	}
+
+	@Override
+	public List<OutcomeSequence> generateWeakOrderWithCycles()
+			throws IOException, PreferenceReasonerException {
+		throw new PreferenceReasonerException("Cyclic reasoning not supported in AcyclicPreferenceReasoner!");
+	}
 }

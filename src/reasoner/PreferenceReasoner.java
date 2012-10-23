@@ -112,6 +112,22 @@ public abstract class PreferenceReasoner {
 	public abstract Set<String> nextPreferred() throws IOException, PreferenceReasonerException;
 	
 	/**
+	 * Computes the set of all outcomes at level i, including those in cycles or strongly connected components (SCCs) in the induced preference graph. 
+	 * Note that it returns a flattened set of outcomes that belong to the non-dominated set at level i (after removing all the non-dominated outcomes at levels 0 to i-1).
+	 * The outcomes may be of two types:
+	 * Type I outcomes: Outcomes not involved in cycles/SCCs  
+	 * Type II outcomes: Outcomes involved in cycles/SCCs
+	 * The first invocation can be done using (null,null) for (psi_i_minus_1, psi_i_minus_2_to_psi_0) to ensure the reasoner starts from the original induced preference graph.
+	 * 
+	 * @param psi_i_minus_1 Outcomes in Level i-1
+	 * @param psi_i_minus_2_to_psi_0 Outcomes in Levels i-2 to 0
+	 * @return Set of outcomes in Level i
+	 * @throws IOException
+	 * @throws PreferenceReasonerException
+	 */
+	public abstract OutcomeSequence nextPreferredWithCycles(OutcomeSequence psi_i_minus_1, OutcomeSequence psi_i_minus_2_to_psi_0) throws IOException, PreferenceReasonerException;
+	
+	/**
 	 * Resets the session and makes the reasoner ready for computing the next preferred outcomes in sequence from the top most level.
 	 */
 	public abstract void resetReasoner();
@@ -143,6 +159,15 @@ public abstract class PreferenceReasoner {
 	 * @throws PreferenceReasonerException 
 	 */
 	public abstract List<OutcomeSequence> generateWeakOrder() throws IOException, PreferenceReasonerException;
+	
+	/**
+	 * Computes a sequence of set of outcomes at subsequent levels in an optimistic minimal weak order extension consistent with the induced preference graph. 
+	 * 
+	 * @return
+	 * @throws IOException
+	 * @throws PreferenceReasonerException
+	 */
+	public abstract List<OutcomeSequence> generateWeakOrderWithCycles() throws IOException, PreferenceReasonerException;
 	
 	/**
 	 * Removes specified outcomes in the induced preference graph from the model
