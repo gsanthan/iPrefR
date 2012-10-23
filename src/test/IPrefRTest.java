@@ -5,7 +5,9 @@ import java.util.List;
 
 import model.OutcomeSequence;
 import reasoner.AcyclicPreferenceReasoner;
+import reasoner.CyclicPreferenceReasoner;
 import reasoner.PreferenceReasoner;
+import translate.CINetToSMVTranslator;
 import translate.PreferenceInputTranslator;
 import translate.PreferenceInputTranslatorFactory;
 import translate.PreferenceInputType;
@@ -51,6 +53,14 @@ public class IPrefRTest {
 		testReasonerForDominanceTesting(smvFile);
 		testReasonerForNextPreferred(smvFile);
 		testReasonerForWeakOrder(smvFile);
+		
+		//Cyclic Preference Reasoner
+		cinetFile = "examples\\cycle-cinet-3.txt";
+		CINetToSMVTranslator translator = new CINetToSMVTranslator();
+		smvFile = translator.convertToSMV(cinetFile, 0);
+		String smvFileReverse = translator.convertToSMV(cinetFile, 0, false);
+		CyclicPreferenceReasoner cpr = new CyclicPreferenceReasoner(smvFileReverse);
+		cpr.generateWeakOrderWithCycles();
 	}
 
 	private static String testReasonerForTranslation(String xmlFile, PreferenceInputType type) throws Exception {
