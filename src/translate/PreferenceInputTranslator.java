@@ -7,6 +7,8 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.xml.sax.SAXException;
 
+import test.CPTheoryDominanceExperimentDriver.REASONING_TASK;
+
 /**
  * Translates preference input of the type (T)CP-nets with unconditional relative importance and CI-nets into models suitable for model checking by (presently) CadenceSMV, NuSMV.
  * @author gsanthan
@@ -34,7 +36,7 @@ public interface PreferenceInputTranslator {
 	 * @throws IOException
 	 * @throws XPathExpressionException
 	 */
-	public String convertToSMV(String preferenceInputFile, int sampleSize) throws ParserConfigurationException,
+	public String convertToSMV(String preferenceInputFile, REASONING_TASK task, int sampleSize) throws ParserConfigurationException,
 			SAXException, IOException, XPathExpressionException;
 
 }

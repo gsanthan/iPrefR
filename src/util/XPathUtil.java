@@ -2,7 +2,9 @@ package util;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -17,6 +19,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
 /**
  * Uses a DOM model based XPath API implementation to perform XPath query evaluation on XML documents.
@@ -162,4 +167,37 @@ public class XPathUtil {
 	    doc = builder.parse(fileName);
 	    return doc;
   }
+  
+  public static NodeList eval(final Document doc, final String pathStr) 
+	        throws XPathExpressionException  {
+	    final XPath xpath = XPathFactory.newInstance().newXPath();
+	    final XPathExpression expr = xpath.compile(pathStr);
+	    return (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+	}
+
+  public static List<ListMultimap<String, String>> nodeListOfNodeListsAsListOfMultimaps(final NodeList nodes) {
+	  	
+	    List<ListMultimap<String, String>> out = new ArrayList<ListMultimap<String, String>>(); 
+	    int len = (nodes != null) ? nodes.getLength() : 0;
+	    for (int i = 0; i < len; i++) {
+	    	ListMultimap<String, String> multimap = ArrayListMultimap.create();
+	        NodeList children = nodes.item(i).getChildNodes();
+	        for (int j = 0; j < children.getLength(); j++) {
+	            Node child = children.item(j);
+                multimap.put(child.getNodeName(), child.getTextContent());
+	        }
+	        out.add(multimap);
+	    }
+	    return out;
+	}
+  
+  public static ListMultimap<String, String> nodeListAsMultimap(final NodeList nodeList) {
+	  	
+    	ListMultimap<String, String> multimap = ArrayListMultimap.create();
+        for (int j = 0; j < nodeList.getLength(); j++) {
+        	Node child = nodeList.item(j);
+        	multimap.put(child.getNodeName(), child.getTextContent());
+        }
+	    return multimap;
+	}
 }

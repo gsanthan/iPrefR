@@ -76,6 +76,7 @@ public class FileUtil {
 	public static void writeLineToFile(BufferedWriter writer, String line) throws IOException {
 		writer.write(line);
 		writer.newLine();
+		writer.flush();
 	}
 	
 	/**
@@ -188,5 +189,28 @@ public class FileUtil {
 			FileUtil.writeLineToFile(writer, lines[i]);
 		}
 		FileUtil.closeFile(writer);
+	}
+	
+	public static boolean deleteFileIfExists(String fileName) {
+		File f = new File(fileName);
+		if(f.exists()) {
+			return f.delete();
+		}
+		return false;
+	}
+	
+	public static String appendPaddedWordsAsLineToFile(String fileName, String[] words, int[] padLengths) throws IOException {
+		BufferedWriter writer = openFileForAppend(fileName);
+		String line = "";
+		for(int i=0; i<words.length; i++) {
+			if(words[i].matches("-?\\d+(\\.\\d+)?\\s+")) {
+				line += StringUtil.padWithSpace(words[i],padLengths[i]);
+			} else {
+				line += StringUtil.padWithRightSpace(words[i],padLengths[i]);
+			}
+		}
+		writeLineToFile(writer, line);
+		closeFile(writer);
+		return line;
 	}
 }

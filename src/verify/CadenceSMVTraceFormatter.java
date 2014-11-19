@@ -89,17 +89,35 @@ public class CadenceSMVTraceFormatter implements TraceFormatter {
 		Set<String> outcome = new HashSet<String>();// First state/outcome in the trace
 		
 		do {
-			for (String var : pmd.getVariables()) {
+			for (String var : pmd.getNamesOfVariables()) {
 				if (line.indexOf("\\" + var + "  = ") != -1) {
+					
+					line = line.replaceAll("\\\\", "");
+					line = line.replaceAll("\\,", "");
 					line = line.trim();
-					String varValuation = line.substring(line.indexOf("=") + 2);
+					/**
+					 * Modified March 6 2014 : Get the full assignment, not just sets of namesOfVariables that hold true in the state 
+					 */
+					if(line.length() > 1) {
+						outcome.add(line);
+					}
+					/*
+					String varValuation = nextLine.substring(nextLine.indexOf("=") + 2);
+					if (varValuation.equalsIgnoreCase("1") || varValuation.equalsIgnoreCase("TRUE")) {
+						outcome.add(var);
+						// variableAssigned = true;//This means there is a new outcome to be added
+					} else if (varValuation.equalsIgnoreCase("0") || varValuation.equalsIgnoreCase("FALSE")) {
+						outcome.remove(var);
+						// variableAssigned = true;//This means there is a new outcome to be added
+					}
+					
 					if (varValuation.startsWith("1") || varValuation.startsWith("TRUE")) {
 						outcome.add(var);
 						// variableAssigned = true;//This means there is a new outcome to be added
 					} else if (varValuation.startsWith("0") || varValuation.startsWith("FALSE")) {
 						outcome.remove(var);
 						// variableAssigned = true;//This means there is a new outcome to be added
-					}
+					}*/
 				}
 			}
 			line = reader.readLine();
@@ -109,7 +127,7 @@ public class CadenceSMVTraceFormatter implements TraceFormatter {
 	
 	/**
 	 * Parses and returns an outcome by making delta changes to the previously parsed outcome from the current position of the BufferedReader.
-	 * Takes into account change variables as part of the outcome description.
+	 * Takes into account change namesOfVariables as part of the outcome description.
 	 * @param pmd
 	 * @param reader
 	 * @param line
@@ -120,7 +138,7 @@ public class CadenceSMVTraceFormatter implements TraceFormatter {
 		Set<String> outcome = new HashSet<String>();// First state/outcome in the trace
 		
 		do {
-			for (String var : pmd.getVariables()) {
+			for (String var : pmd.getNamesOfVariables()) {
 				if (line.indexOf("\\" + var + "  = ") != -1) {
 					line = line.trim();
 					String varValuation = line.substring(line.indexOf("=") + 2);
@@ -134,7 +152,7 @@ public class CadenceSMVTraceFormatter implements TraceFormatter {
 				}
 				
 				
-				//Look for change variables
+				//Look for change namesOfVariables
 				if (line.indexOf("\\ch" + var + "  = ") != -1) {
 					line = line.trim();
 					String varValuation = line.substring(line.indexOf("=") + 2);

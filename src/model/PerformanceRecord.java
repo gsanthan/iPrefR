@@ -46,14 +46,14 @@ public class PerformanceRecord {
 	/**
 	 * The outcome, if any, that was generated as a counterexample during the verification
 	 */
-	private Set<String> outcome;
+	private Outcome outcome;
 	
-	public Set<String> getOutcome() {
+	public Outcome getOutcome() {
 		return outcome;
 	}
 
-	public void setOutcome(Set<String> outcome) {
-		this.outcome = outcome;
+	public void setOutcome(Outcome outcome2) {
+		this.outcome = outcome2;
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class PerformanceRecord {
 		String formatted = "";
 		String encodedOutcome = "intermediate step";
 		if(outcome != null) {
-			encodedOutcome=BinaryEncoding.getBinaryEncoding(WorkingPreferenceModel.getPrefMetaData().getVariables(), outcome);
+			encodedOutcome=BinaryEncoding.getBinaryEncoding(WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables(), outcome);
 		}
 		formatted += "["+recordId+","+encodedOutcome+","+smvFile+","+property+","+verified+","+userTimeElapsed+","+systemTimeElapsed+","+bddsUsed+"]";
 		return formatted;

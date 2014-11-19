@@ -1,7 +1,5 @@
 package translate;
 
-import generate.SpecGenerator;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -9,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +16,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.xml.sax.SAXException;
 
+import test.CPTheoryDominanceExperimentDriver.REASONING_TASK;
 import util.Constants;
 import util.FileUtil;
 
@@ -31,10 +31,11 @@ import util.FileUtil;
  */
 public class CINetToSMVTranslator implements PreferenceInputTranslator {
 
+	public enum VAR_TYPE {CHANGE, COPY};
 	
-	public String convertToSMV(String cinetFile, int sampleSize) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
+	public String convertToSMV(String cinetFile, REASONING_TASK task, int sampleSize) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 		//By default, assume forward model, i.e., improving flip
-		return convertToSMV(cinetFile, sampleSize, true);
+		return convertToSMV(cinetFile, task, sampleSize, true);
 	}
 	/**
 	 * Translates CI-nets specified in text format into SMV model suitable as input for model checkers Cadence SMV and NuSMV.
@@ -45,7 +46,7 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 	 * @author gsanthan
 	 * 
 	 */
-	public String convertToSMV(String cinetFile, int sampleSize, boolean improvingFlip) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
+	public String convertToSMV(String cinetFile, REASONING_TASK task, int sampleSize, boolean improvingFlip) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 		
 		String smvFile = new String();
 		if(improvingFlip) {
@@ -55,29 +56,12 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 		}
 		BufferedReader r = new BufferedReader(new FileReader(cinetFile));
 		
-		// Create/open the smv file where we are going to save the translated code 
-		BufferedWriter w = FileUtil.openFile(smvFile);
-		
-		//FileUtil.writeLineToFile(w, "MODULE main");
-		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
-			FileUtil.writeLineToFile(w, "module main(){");
-		} else {
-			FileUtil.writeLineToFile(w, "MODULE main");
-		}
-		
-		FileUtil.writeLineToFile(w, "");
-		
-		String[] variables=null;
+		//Extract namesOfVariables used
+		List<String> variables=null;
 		String test = r.readLine();
 		if(test !=null && test.equals("VARIABLES")) {
-			// Extract preference variables
-			variables = r.readLine().split(",");
-		}
-		
-		//Binary variables
-		String[][] variableDomains = new String[variables.length][];
-		for (int i=0; i<variableDomains.length; i++) {
-			variableDomains[i] = new String[]{"0","1"};
+			// Extract preference namesOfVariables
+			variables = Arrays.asList(r.readLine().split(","));
 		}
 		
 		//Extract the conditional importance statements
@@ -86,61 +70,117 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 		while((line = r.readLine())!=null) {
 			preferenceLines.add(line);
 		}
-		//This map contains the statements to be added to each variable's "next" assignment
-		Map<String, List<String>> variableMap = processConditionalImportancePreferences(preferenceLines, variables, improvingFlip);
-		List<String> globalChange = new ArrayList<String>();
-		
-		// Start writing the SMV file
-		
-		// Write the lines declaring the variables and their domains to smv file
-		FileUtil.writeLineToFile(w, "VAR");
-		int varIndex = 0;
-		for (varIndex=0; varIndex<variables.length; varIndex++) {
-			String varLine;
-			if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
-				varLine = "  " + variables[varIndex] + " : boolean;";
-			} else {
-				varLine = "  " + variables[varIndex] + " : {0,1};";
-			}
-			FileUtil.writeLineToFile(w, varLine);
+				
+		//Binary domain namesOfVariables
+		String[][] variableDomains = new String[variables.size()][];
+		for (int i=0; i<variableDomains.length; i++) {
+			variableDomains[i] = new String[]{"0","1"};
 		}
+				
+		// Create/open the smv file where we are going to save the translated code 
+		BufferedWriter w = FileUtil.openFile(smvFile);
+		FileUtil.writeLineToFile(w, "");
 		
-		// Create variables that indicate change of value in the corresponding preference variable 
-		for (varIndex=0; varIndex<variables.length; varIndex++) {
-			String varLine;
-			
-			if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
-				varLine = "  " + "ch" + variables[varIndex] + " : boolean;";
-			} else {
-				varLine = "  " + "ch" + variables[varIndex] + " : {0,1};";
-			}
-			
-			FileUtil.writeLineToFile(w, varLine);
-		}
-		
-		//Declare global change variable
+		//Added 21 Jan 2014
 		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
-			FileUtil.writeLineToFile(w, "  gch : boolean;");
+			String changeVarList = "";
+			for(String v : variables) {
+				if(changeVarList.trim().length()>0) {
+					changeVarList += ",";
+				}
+				changeVarList += "ch"+v;
+			}
+			String copyVarList = "";
+			for(String v : variables) {
+				if(copyVarList.trim().length()>0) {
+					copyVarList += ",";
+				}
+				copyVarList += v+"_0";
+			}
+			FileUtil.writeLineToFile(w, "module main("+changeVarList+","+copyVarList+"){");
 		} else {
-			FileUtil.writeLineToFile(w, "  gch : {0,1};");
+			FileUtil.writeLineToFile(w, "MODULE main");
 		}
 		
+		
+		// Write the lines declaring the namesOfVariables and their domains to smv file
+		FileUtil.writeLineToFile(w, "VAR");
+		
+		int varIndex = 0;
+		for (varIndex=0; varIndex<variables.size(); varIndex++) {
+			String varLine;
+			if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
+				varLine = "  " + variables.get(varIndex) + " : boolean;";
+			} else {
+				varLine = "  " + variables.get(varIndex) + " : {0,1};";
+			}
+			FileUtil.writeLineToFile(w, varLine);
+		}
+		
+		//Aux. namesOfVariables to compare the current state with the start state (i.e., outcome where verification begun)
+		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.NuSMV) {
+			FileUtil.writeLineToFile(w, "FROZENVAR");
+		}
+		writeAuxiliaryVariableDeclarations(w, variables, "", "_0", VAR_TYPE.COPY);
+		//Aux. namesOfVariables indicating change of corresponding preference namesOfVariables in next state
+		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.NuSMV) {
+			FileUtil.writeLineToFile(w, "IVAR");
+		}
+		writeAuxiliaryVariableDeclarations(w, variables, "ch", "", VAR_TYPE.CHANGE);
+		
+		FileUtil.writeLineToFile(w, "");
+
+		//Define a variable that is true whenever at least one of the change namesOfVariables is true -- used in defining next(gch)
+		FileUtil.writeLineToFile(w, "DEFINE");
+		varIndex=0;
+		String start = /*"";
+		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
+			start += "DEFINE ";
+		}
+		start +=*/ "start := ";
+		for (Iterator<String> iterator = variables.iterator(); iterator.hasNext(); varIndex++) {
+			String variableName = (String) iterator.next();
+			if(varIndex > 0) { 
+				start = start + " & ";
+			}
+			start = start + variableName + "=" + variableName + "_0";
+		}
+		start = start + ";";
+		FileUtil.writeLineToFile(w, start);
+		FileUtil.writeLineToFile(w, "");
+	
+		FileUtil.writeLineToFile(w, "INIT start=TRUE;");
+		String transConstraintCopyVar = "";
+		varIndex=0;
+		for (Iterator<String> iterator = variables.iterator(); iterator.hasNext(); varIndex++) {
+			String variableName = (String) iterator.next();
+			if(varIndex > 0) { 
+				transConstraintCopyVar = transConstraintCopyVar + " & ";
+			}
+			transConstraintCopyVar = transConstraintCopyVar + variableName + "_0=next(" + variableName + "_0)";
+		}
+		FileUtil.writeLineToFile(w, "TRANS "+transConstraintCopyVar+";");
+
 		FileUtil.writeLineToFile(w, "");
 		
 		// Conditional Preferences - Each CPT entry is a transition specification in the model
 		FileUtil.writeLineToFile(w, "ASSIGN");
 		
-
-		//TODO For next preferred with cycles, better have this in here!
 		// Write the assignments in terms of next(var) : = case ... esac; statements
-		for (varIndex=0; varIndex<variables.length; varIndex++) {
-			String var = variables[varIndex];
-			//Initialize the change variables to 0 (in the start state, chVi=0)
-			FileUtil.writeLineToFile(w, "  init(ch"+var+") := 0;");
-		}
+		// If there are parents, then write one line (modeling a transition) for each CPT entry
+		// 		specifying the current variable's preference for that parent assignment, 
+		//		with all other namesOfVariables equal for all namesOfVariables other than current variable in the two states
+		List<String> copy = new ArrayList<String>(variables);
 		
-		for (varIndex=0; varIndex<variables.length; varIndex++) {
-			String var = variables[varIndex];
+		
+		//End Added 21 Jan 2014
+		
+		
+		//This map contains the statements to be added to each variable's "next" assignment
+		Map<String, List<String>> variableMap = processConditionalImportancePreferences(preferenceLines, variables.toArray(new String[0]), improvingFlip);
+		
+		for (varIndex=0; varIndex<variables.size(); varIndex++) {
+			String var = variables.get(varIndex);
 			//Write 'next(var):= case'
 			FileUtil.writeLineToFile(w, "  next("+var+") :=");
 			
@@ -155,7 +195,7 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 				//Monotonicity Flip - Reversed Direction 
 				lineToWrite = "      " + var + "=0" + " & " + "ch"+var+"=1" ;
 				for (String otherVar : variables) {
-					if(!otherVar.equals(variables[varIndex])) {
+					if(!otherVar.equals(variables.get(varIndex))) {
 						lineToWrite = lineToWrite + " & " + "(("+otherVar+"=1 & ch"+otherVar+"=1) | ("+otherVar+"=0 & ch"+otherVar+"=0))";
 					}
 				}
@@ -164,25 +204,22 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 				//Monotonicity Flip
 				lineToWrite = "      " + var + "=1" + " & " + "ch"+var+"=1" ;
 				for (String otherVar : variables) {
-					if(!otherVar.equals(variables[varIndex])) {
+					if(!otherVar.equals(variables.get(varIndex))) {
 						lineToWrite = lineToWrite + " & " + "(("+otherVar+"=1 & ch"+otherVar+"=0) | ("+otherVar+"=0 & ch"+otherVar+"=1))";
 					}
 				}
 				lineToWrite = lineToWrite + ": 0;";
 			}
 			
-			//Add this transition to keep track of global change variable
-			globalChange.add(lineToWrite);
 			FileUtil.writeLineToFile(w, lineToWrite);
 		
 			//Conditional Importance Flip
-			List<String> linesToWrite = variableMap.get(variables[varIndex]);
+			List<String> linesToWrite = variableMap.get(variables.get(varIndex));
 			//Add these transitions to keep track of global change variable
-			globalChange.addAll(linesToWrite);
 			for (String l : linesToWrite) {
 				FileUtil.writeLineToFile(w, l);
 			}
-			FileUtil.writeLineToFile(w, "      TRUE: "+variables[varIndex]+";");
+			FileUtil.writeLineToFile(w, "      TRUE: "+variables.get(varIndex)+";");
 			
 			if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
 				FileUtil.writeLineToFile(w, "    };");
@@ -192,51 +229,11 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 		}
 		
 		
-		//Process global change variable
-		FileUtil.writeLineToFile(w, "  init(gch) := 0;");
-		//Write 'next(gch):= case'
-		FileUtil.writeLineToFile(w, "  next(gch) :=");
-		
-		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
-			FileUtil.writeLineToFile(w, "    case{");
-		} else {
-			FileUtil.writeLineToFile(w, "    case");	
-		}		
-		
-		//TODO For next preferred with cycles, better have this in
-		FileUtil.writeLineToFile(w, "      --gch=1: 0;");
-		
-		for (String g : globalChange) {
-			g = g.substring(0,g.lastIndexOf(":"));
-			g = g + ": 1;";
-			FileUtil.writeLineToFile(w, g);
-		}
-		FileUtil.writeLineToFile(w, "      TRUE: 0;");
-		
-		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
-			FileUtil.writeLineToFile(w, "    };");
-		} else {
-			FileUtil.writeLineToFile(w, "    esac;");	
-		}
-
 		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
 			FileUtil.writeLineToFile(w, "}");
 		}
 		
 		FileUtil.closeFile(w);
-		
-		if(sampleSize > 0) {
-			// Generate and write randomly generated 'sampleSize' specs to the spec file
-			String specFile = cinetFile.substring(0, cinetFile.length()-4).concat(".spec");
-			BufferedWriter wSpec = FileUtil.openFile(specFile);
-			SpecGenerator specGen = new SpecGenerator();
-			String[] specs = specGen.createRandomDominanceTestSpecs(variables, variableDomains, sampleSize);
-			for (int i = 0; i < specs.length; i++) {
-				FileUtil.writeLineToFile(wSpec, specs[i]);
-			}
-			
-			FileUtil.closeFile(wSpec);
-		} 
 		
 		return smvFile;
 	}
@@ -355,5 +352,26 @@ public class CINetToSMVTranslator implements PreferenceInputTranslator {
 			}
 		}
 		return variableMap;
-	} 
+	}
+	
+	private void writeAuxiliaryVariableDeclarations(BufferedWriter w, List<String> variableNames, String prefix, String suffix, VAR_TYPE type) throws IOException {
+		
+		Iterator<String> iterator = variableNames.iterator();
+		// Create namesOfVariables that indicate change of value in the corresponding preference variable 
+		while (iterator.hasNext()) {
+			String variableName = (String) iterator.next();
+			String varLine = "";
+			if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.CadenceSMV) {
+				if(type == VAR_TYPE.CHANGE || type == VAR_TYPE.COPY) {
+					varLine = " input " + prefix + variableName + suffix + " : " + "boolean;";
+				} else {
+					varLine = "  " + prefix + variableName + suffix + " : " + "boolean;";
+				}
+			} else {
+				varLine = "  " + prefix + variableName + suffix + " : " + "{0,1};";
+			}
+			FileUtil.writeLineToFile(w, varLine);
+		}
+	}
+
 }

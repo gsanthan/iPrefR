@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.PreferenceMetaData;
-import model.WorkingPreferenceModel;
 import util.FileUtil;
+import util.OutputUtil;
 import util.StringUtil;
 
 /**
@@ -173,7 +173,7 @@ public class ModelChecker {
 					temp += "init("+literals[i]+"):=1;";
 				}
 			}
-			System.out.println(temp);
+			OutputUtil.println(temp);
 			
 			//Append this init and spec to the current spec file and save it
 			FileUtil.appendLineToFile(currentSmvFile, temp);

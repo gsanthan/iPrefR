@@ -2,7 +2,6 @@ package translate;
 
 import generate.SpecGenerator;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,8 +17,11 @@ import javax.xml.xpath.XPathExpressionException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+import test.CPTheoryDominanceExperimentDriver.REASONING_TASK;
 import util.Constants;
 import util.FileUtil;
+import util.OutputUtil;
+import util.StringUtil;
 import util.XPathUtil;
 
 /**
@@ -31,7 +33,15 @@ import util.XPathUtil;
  * @author gsanthan
  *
  */
-public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
+public class TCPNetToSMVTranslator extends PreferenceTranslator implements PreferenceInputTranslator {
+	
+	
+	public static void main(String[] args) throws XPathExpressionException, ParserConfigurationException, SAXException, IOException {
+		
+		TCPNetToSMVTranslator t = new TCPNetToSMVTranslator();
+		String file = "D:\\Ganesh\\Research\\WIP\\JAIR2013\\example\\cyberdefense-tcpnet.xml";
+		OutputUtil.println(t.convertToSMV(file, REASONING_TASK.DOMINANCE, 2));
+	}
 	
 	/**
 	 * Parses XML file and saves a SMV file fit for model checking by NuSMV or Cadence SMV.
@@ -46,7 +56,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 	 * @throws IOException
 	 * @throws XPathExpressionException
 	 */
-	public String convertToSMV(String xmlFile, int sampleSize) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
+	public String convertToSMV(String xmlFile, REASONING_TASK reasoningTask, int sampleSize) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 		
 		String smvFile = xmlFile.substring(0, xmlFile.length()-4).concat(".smv");
 		Document doc = XPathUtil.makeDocument(xmlFile);
@@ -67,7 +77,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 		 * VAR  
 		 * 	a : {a1, a2};
 		 */
-		// Extract preference variables
+		// Extract preference namesOfVariables
 		String xpathExprVarName = "//VARIABLE/NAME";
 		List<String> variableNames = XPathUtil.evaluateListExpr(xpathExprVarName, doc);
 		
@@ -76,7 +86,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 		
 		List<String> globalChange = new ArrayList<String>();
 		
-		// Write the lines declaring the variables and their domains to smv file
+		// Write the lines declaring the namesOfVariables and their domains to smv file
 		FileUtil.writeLineToFile(w, "VAR");
 		int varIndex = 0;
 		
@@ -124,7 +134,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 			FileUtil.writeLineToFile(w, varLine);
 		}
 		
-		// Create variables that indicate change of value in the corresponding preference variable 
+		// Create namesOfVariables that indicate change of value in the corresponding preference variable 
 		for (Iterator<String> iterator = variableNames.iterator(); iterator.hasNext(); varIndex++) {
 			String variableName = (String) iterator.next();
 			String varLine = "";
@@ -145,7 +155,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 		
 		FileUtil.writeLineToFile(w, "");
 		
-		//Define a variable that is true whenever at least one of the change variables is true -- used in defining next(gch)
+		//Define a variable that is true whenever at least one of the change namesOfVariables is true -- used in defining next(gch)
 		FileUtil.writeLineToFile(w, "DEFINE");
 		varIndex=0;
 		String atLeastOneChange = "  change := ";
@@ -166,27 +176,27 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 		// Write the assignments in terms of next(var) : = case ... esac; statements
 		// If there are parents, then write one line (modeling a transition) for each CPT entry
 		// 		specifying the current variable's preference for that parent assignment, 
-		//		with all other variables equal for all variables other than current variable in the two states
+		//		with all other namesOfVariables equal for all namesOfVariables other than current variable in the two states
 		List<String> copy = new ArrayList<String>(variableNames);
 		for (Iterator<String> iterator1 = copy.iterator(); iterator1.hasNext();) {
 			
 			String variableName = (String) iterator1.next();
 			
 			//TODO: TAKE CARE FOR ACYCLIC vs CYCLIC preference reasoning!!
-			//-- IMPORTANT: Don't Initialize the change variables to 0 (in the start state, chVi=0)
+			//-- IMPORTANT: Don't Initialize the change namesOfVariables to 0 (in the start state, chVi=0)
 			//-- It will affect functioning of computing getStateInTerminalSCCFromSeed in SCCHelper
 			//-- IMPORTANT: But, for reasoning with acyclic induced preference graphs, it is neccessary to initialize them to 0.
 			//-- REASON: Otherwise, NuSMV will give incorrect result:
-			//-- During model checking, NuSMV checks if the CTL is verified for ALL initial states including the outcome with different assignments to change variables.
+			//-- During model checking, NuSMV checks if the CTL is verified for ALL initial states including the outcome with different assignments to change namesOfVariables.
 			//-- Example: Suppose we check if there is a path from \alpha to \beta. 
-			//-- 		  If there is a transition from \alpha to \gamma from a state where variables correspond to \alpha, 
-			//--		  but change variables are such that there is a transition to \gamma, and also there is no path from \gamma to \beta.
-			//--		  Then, even if there is a state where variables correspond to \alpha and change variables correspond to a transition to \beta, 
-			//--		  NuSMV will not return true for \alpha -> EF \beta because it can initialize change variables such that there is a transition from \alpha that takes it to \gamma and with no way of reaching \beta.
-			//-- If the initialization of change variables is to be needed for some reason,
+			//-- 		  If there is a transition from \alpha to \gamma from a state where namesOfVariables correspond to \alpha, 
+			//--		  but change namesOfVariables are such that there is a transition to \gamma, and also there is no path from \gamma to \beta.
+			//--		  Then, even if there is a state where namesOfVariables correspond to \alpha and change namesOfVariables correspond to a transition to \beta, 
+			//--		  NuSMV will not return true for \alpha -> EF \beta because it can initialize change namesOfVariables such that there is a transition from \alpha that takes it to \gamma and with no way of reaching \beta.
+			//-- If the initialization of change namesOfVariables is to be needed for some reason,
 			//-- consider the possible workaround:
-			//-- Instead of initializing change variables to 0, insert an explicit transition from all states to themselves (self-loops) by including (guard : {0,1}) for the variables.
-			//-- Even better, simply initialize the model with (h_i=0) and include a conjunction of change variables (h_i=0) for all i in the dominance query: ((\alpha & /\_i(h_i=0)) -> EX EF \beta). 
+			//-- Instead of initializing change namesOfVariables to 0, insert an explicit transition from all states to themselves (self-loops) by including (guard : {0,1}) for the namesOfVariables.
+			//-- Even better, simply initialize the model with (h_i=0) and include a conjunction of change namesOfVariables (h_i=0) for all i in the dominance query: ((\alpha & /\_i(h_i=0)) -> EX EF \beta). 
 			FileUtil.writeLineToFile(w, "  init(ch"+variableName+") := 0;");
 			
 			//Write 'next(var):= case'
@@ -218,11 +228,11 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 			}
 			
 			//Relative importance -- translate 
-			// Extract variables less important than current node
+			// Extract namesOfVariables less important than current node
 			String xpathExprLessImpVariables = "//REL-IMP[IMP-VARIABLE='"+variableName+"']/IMP-THAN";	
 			List<String> lessImpVariables = XPathUtil.evaluateListExpr(xpathExprLessImpVariables, doc);
 			
-			// Extract variables more important than current variable
+			// Extract namesOfVariables more important than current variable
 			String xpathExprMoreImpVariables = "//REL-IMP[IMP-THAN='"+variableName+"']/IMP-VARIABLE";
 			List<String> moreImpVariables = XPathUtil.evaluateListExpr(xpathExprMoreImpVariables, doc);
 			
@@ -301,7 +311,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 	
 	/**
 	 * Parses intra-variable preferences specified in the conditional preference table of variableName; and
-	 * translates them into appropriate guarded transitions to be included in the transition specifying how variableName will change, along with the change variables. 
+	 * translates them into appropriate guarded transitions to be included in the transition specifying how variableName will change, along with the change namesOfVariables. 
 	 * Translation is according to the semantics given by Brafman (JAIR 2004) for V-flip in a TCP-net. 
 	 * See "Dominance Testing via Model Checking" Santhanam et al. AAAI 2010 for precise translation rules.
 	 * Returns an array of strings that have to be included as guarded transitions to the next(variableName) in the SMV model 
@@ -328,7 +338,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 		// For each CPT row, define a transition:
 		// LHS: variable=better value; 
 		// 		then for parents get the CPT key and replace ',' with '&' to model smv syntax;
-		//		then for ALL variables including parents excluding the current variable, 
+		//		then for ALL namesOfVariables including parents excluding the current variable, 
 		//					ensure equality in next state
 		// RHS: worse value for the variable
 		for (Iterator<String> iterator2 = cptKeys.iterator(), iterator3 = cptValues.iterator(); iterator2.hasNext();) {
@@ -349,7 +359,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 				// Model the transition from the worse to the better value of current variable
 				String currentLine = "      " + variableName + "=" + orderedValues[1];
 				
-				// For all PARENT variables of the current one, 
+				// For all PARENT namesOfVariables of the current one, 
 				// enforce the assignment specified in LHS of CPT row
 				String[] temp = parentAssignment.split(",");
 				
@@ -362,7 +372,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 				
 				currentLine = currentLine + " & " + "ch" + variableName + "=1";
 				
-				// For all variables OTHER than the current one, 
+				// For all namesOfVariables OTHER than the current one, 
 				// enforce equality in the current and next state of the transition
 				for (Iterator<String> iterator = variableNames.iterator(); iterator.hasNext(); ) {
 					String var = iterator.next();
@@ -381,8 +391,8 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 	}
 
 	/**
-	 * Parses relative importance preferences with respect to variableName (and variables that are more/less important with respect to variableName); and 
-	 * translates them into appropriate guarded transitions to be included in the transition specifying how variableName will change, along with the change variables. 
+	 * Parses relative importance preferences with respect to variableName (and namesOfVariables that are more/less important with respect to variableName); and 
+	 * translates them into appropriate guarded transitions to be included in the transition specifying how variableName will change, along with the change namesOfVariables. 
 	 * Translation is according to the semantics given by Wilson (AAAI 2004). 
 	 * See "Dominance Testing via Model Checking" Santhanam et al. AAAI 2010 for precise translation rules.
 	 * Returns an array of strings that have to be included as guarded transitions to the next(variableName) in the SMV model   
@@ -392,8 +402,8 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 	 * @param cptKeys Conditions under which intra-variable preferences are specified in the CPT of variableName
 	 * @param cptValues Intra-variable preferences corresponding to conditions in the CPT of variableName
 	 * @param variableNames List of all variableNames
-	 * @param lessImpVariableNames List of variables less important than variableName
-	 * @param moreImpVariableNames List of variables more important than variableName
+	 * @param lessImpVariableNames List of namesOfVariables less important than variableName
+	 * @param moreImpVariableNames List of namesOfVariables more important than variableName
 	 * @param doc XML file containing the input preference specification 
 	 * @return Array of strings that have to be included as guarded transitions to the next(variableName) in the SMV model   
 	 * @throws XPathExpressionException
@@ -408,12 +418,12 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 		linesToWrite.add("      -- relative importance: "+variableName+" >> "+Arrays.toString(lessImpVariableNames.toArray(new String[0])));
 		
 		String currentLine = "";
-		// Translation for variables less important than current one:
+		// Translation for namesOfVariables less important than current one:
 		// ==========================================================
 		// For each CPT row, define a transition:
 		// LHS: variable=better value; 
 		// 		then for parents get the CPT key and replace ',' with '&' to model smv syntax;
-		//		then for ALL variables including parents excluding the current variable, 
+		//		then for ALL namesOfVariables including parents excluding the current variable, 
 		//					ensure equality in next state
 		// RHS: worse value for the variable
 		if(lessImpVariableNames.size()>0) {
@@ -431,7 +441,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 					// Model the transition from the worse to the better value of current variable
 					currentLine = "      " + variableName + "=" + orderedValues[1];
 					
-					// For all PARENT variables of the current one, 
+					// For all PARENT namesOfVariables of the current one, 
 					// enforce the assignment specified in LHS of CPT row
 					String[] temp = parentAssignment.split(",");
 					
@@ -444,7 +454,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 					
 					// Wilson's semantics :
 					// ====================
-					// For all variables OTHER THAN THOSE LESS IMPORTANT THAN current one & other than the current one, 
+					// For all namesOfVariables OTHER THAN THOSE LESS IMPORTANT THAN current one & other than the current one, 
 					// enforce equality in the current and next state of the transition
 					List<String> tempVarNames = new ArrayList<String>(variableNames);
 					tempVarNames.removeAll(lessImpVariableNames);
@@ -461,7 +471,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 					//linesToWrite.add(currentLine1);
 					//The above transition is redundant and enabled by "TRUE: 0;" default rule. 
 					//Moreover, it will cause problematic behavior of variable gch:
-					//It creates loop holes for gch becoming 1 when none of the variables (including varibleName) changes
+					//It creates loop holes for gch becoming 1 when none of the namesOfVariables (including varibleName) changes
 					
 					//Specify a rule allowing the BETTER value in the next state of the transition with change variable = 1
 					String currentLine2 = currentLine + " & ch" + variableName + "=1 : " + orderedValues[0] + ";";
@@ -473,7 +483,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 		
 		linesToWrite.add("      -- relative importance: "+variableName+" << "+Arrays.toString(moreImpVariableNames.toArray(new String[0])));
 		
-		// Translation for variables more important than current one:
+		// Translation for namesOfVariables more important than current one:
 		// ==========================================================
 		if(moreImpVariableNames.size() > 0) {
 			currentLine = "      ";
@@ -501,7 +511,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 						// Model the transition from the worse to the better value of current variable
 						currentLine = "      " + moreImpVariable + "=" + orderedValues[1];
 						
-						// For all PARENT variables of the currently considered most important variable, 
+						// For all PARENT namesOfVariables of the currently considered most important variable, 
 						// enforce the assignment specified in LHS of CPT row
 						String[] temp = parentAssignmentOfMoreImpVar.split(",");
 						
@@ -521,7 +531,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 						
 						// Wilson's semantics : 
 						// ====================
-						// For all variables OTHER than this more imp. one except current variable, 
+						// For all namesOfVariables OTHER than this more imp. one except current variable, 
 						// enforce equality in the current and next state of the transition
 						List<String> tempVarNames = new ArrayList<String>(variableNames);
 						List<String> siblingsThroughMoreImpVariable = getVariablesLessImportantThan(moreImpVariable, doc);
@@ -533,15 +543,17 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 							currentLine = currentLine + " & " + "ch" + var + "=0";
 						}
 						// There are 4 possibilities for the current variable when the currently considered more important variable changes
-						String currentLine1 = currentLine + " & "+variableName+"=0 & ch" + variableName + "=0 : 0;";
+/*						String currentLine1 = currentLine + " & "+variableName+"=0 & ch" + variableName + "=0 : 0;";
 						String currentLine2 = currentLine + " & "+variableName+"=0 & ch" + variableName + "=1 : 1;";
 						String currentLine3 = currentLine + " & "+variableName+"=1 & ch" + variableName + "=0 : 1;";
-						String currentLine4 = currentLine + " & "+variableName+"=1 & ch" + variableName + "=1 : 0;";
+						String currentLine4 = currentLine + " & "+variableName+"=1 & ch" + variableName + "=1 : 0;";*/
+						String domainAssignment = "{" + StringUtil.commaSeparated(Arrays.asList(domain.split(","))) + "}";
+						String currentLine1 = currentLine + " & ch" + variableName + "=1 : "+domainAssignment+";";
 						
 						linesToWrite.add(currentLine1);
-						linesToWrite.add(currentLine2);
+						/*linesToWrite.add(currentLine2);
 						linesToWrite.add(currentLine3);
-						linesToWrite.add(currentLine4);
+						linesToWrite.add(currentLine4);*/
 					}
 				}
 			}
@@ -555,7 +567,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 	 * 
 	 * @param variableName Input variable 
 	 * @param doc XML file containing the input preference specification 
-	 * @return List of variables less important than variableName
+	 * @return List of namesOfVariables less important than variableName
 	 * @throws XPathExpressionException
 	 * @throws SAXException
 	 * @throws IOException
@@ -577,12 +589,12 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 	}
 	
 	/**
-	 * Parses the variables less important than variableName from the xml document holding the preference specification 
-	 * Returns the list of variables less important than variableName
+	 * Parses the namesOfVariables less important than variableName from the xml document holding the preference specification 
+	 * Returns the list of namesOfVariables less important than variableName
 	 * 
 	 * @param variableName Input variable 
 	 * @param doc XML file containing the input preference specification 
-	 * @return List of variables less important than variableName
+	 * @return List of namesOfVariables less important than variableName
 	 * @throws XPathExpressionException
 	 * @throws SAXException
 	 * @throws IOException
@@ -629,7 +641,7 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 	public void parsePreferenceXML(String xmlFile) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
 		Document doc = XPathUtil.makeDocument(xmlFile);
 		
-		// Extract preference variables
+		// Extract preference namesOfVariables
 		String xpathExprVarName = "//VARIABLE/NAME";
 		List<String> variableNames = XPathUtil.evaluateListExpr(xpathExprVarName, doc);
 		
@@ -660,37 +672,5 @@ public class TCPNetToSMVTranslator implements PreferenceInputTranslator {
 				String value = (String) iterator3.next();
 			}
 		}
-	}
-
-	public static String[] getVariablesFromSMVModel(String smvFile) throws IOException {
-		Set<String> variables = new HashSet<String>();
-		BufferedReader r = FileUtil.openFileForRead(smvFile);
-		
-		try{
-		String nextLine = null;
-		
-		do {
-			nextLine = r.readLine();
-		} while (nextLine != null && !nextLine.trim().equalsIgnoreCase("VAR"));
-		
-		if(nextLine == null) {
-			//VAR declaration not present - Error in SMV file
-			throw new RuntimeException("No VARS declaration line in SMV file");
-		}
-		
-		do {
-			nextLine = r.readLine();
-			if(nextLine != null) {
-				nextLine = nextLine.trim();
-				if(nextLine.contains(":")) {
-					String var = nextLine.substring(0,nextLine.indexOf(":")-1).trim();
-					if(!var.contains("ch") && ! var.contains("used")) {
-						variables.add(var);
-					}
-				}
-			}
-		} while (nextLine != null && !nextLine.trim().equalsIgnoreCase("ASSIGN"));
-		}finally{r.close();}
-		return variables.toArray(new String[]{});
 	}
 }

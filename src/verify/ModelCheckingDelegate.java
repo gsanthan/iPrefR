@@ -8,13 +8,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-import exception.PreferenceReasonerException;
-
 import model.PreferenceMetaData;
-import model.WorkingPreferenceModel;
-
 import util.Constants;
 import util.FileUtil;
+import util.OutputUtil;
+import exception.PreferenceReasonerException;
 
 /**
  * Verifies SMV model using the given constraints against the given specifications, and parses the verification result
@@ -81,7 +79,7 @@ public class ModelCheckingDelegate {
 			outputFile = invoke.invokeModelChecker(prefMetaData, Constants.SMV_EXEC_COMMAND, workingFile, null);
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println();
+			OutputUtil.println();
 			throw new PreferenceReasonerException("INVALID_MODELCHECKER_COMMAND");
 		}
 //		PerformanceAnalyzer.addLatestPerformanceRecord(null);

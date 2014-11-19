@@ -98,14 +98,19 @@ public class NuSMVTraceFormatter implements TraceFormatter {
 	 */
 	private Set<String> parseOutcome(Set<String> previousOutcome, String nextLine, BufferedReader reader) throws IOException {
 		Set<String> outcome = new HashSet<String>();// First state/outcome in the trace
-		if(previousOutcome != null) {
+		/*if(previousOutcome != null) {
 			outcome = new HashSet<String>(previousOutcome); // Some intermediate state/outcome in the trace
-		}
+		}*/
 		
 		do {
-			for (String var : WorkingPreferenceModel.getPrefMetaData().getVariables()) {
+			for (String var : WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables()) {
 				if (nextLine.indexOf(" " + var + " = ") != -1) {
 					nextLine = nextLine.trim();
+					/**
+					 * Modified March 6 2014 : Get the full assignment, not just sets of namesOfVariables that hold true in the state 
+					 */
+					outcome.add(nextLine);
+					/*
 					String varValuation = nextLine.substring(nextLine.indexOf("=") + 2);
 					if (varValuation.equalsIgnoreCase("1") || varValuation.equalsIgnoreCase("TRUE")) {
 						outcome.add(var);
@@ -113,7 +118,7 @@ public class NuSMVTraceFormatter implements TraceFormatter {
 					} else if (varValuation.equalsIgnoreCase("0") || varValuation.equalsIgnoreCase("FALSE")) {
 						outcome.remove(var);
 						// variableAssigned = true;//This means there is a new outcome to be added
-					}
+					}*/
 				}
 			}
 			nextLine = reader.readLine();
@@ -135,7 +140,7 @@ public class NuSMVTraceFormatter implements TraceFormatter {
 		int counter=0;
 		while((nextLine = reader.readLine()) != null) {
 			if (!nextLine.startsWith("--")) {
-				for (String var : pmd.getVariables()) {
+				for (String var : pmd.getNamesOfVariables()) {
 					if(nextLine.indexOf(" " + var + " = ") != -1) {
 						counter++;
 						nextLine = nextLine.trim();
@@ -147,7 +152,7 @@ public class NuSMVTraceFormatter implements TraceFormatter {
 						}
 					}					
 				}
-				if(firstStateOnly && (counter >= pmd.getVariables().length)) {
+				if(firstStateOnly && (counter >= pmd.getNamesOfVariables().length)) {
 					break;
 				}
 			}
@@ -168,7 +173,7 @@ public class NuSMVTraceFormatter implements TraceFormatter {
 			String nextLine;
 			try{
 			while((nextLine = reader.readLine()) != null) {
-				for (String var : pmd.getVariables()) {
+				for (String var : pmd.getNamesOfVariables()) {
 					if(nextLine.indexOf(" " + var + " = ") != -1) {
 						nextLine = nextLine.trim();
 						String varValuation = nextLine.substring(nextLine.length()-1);

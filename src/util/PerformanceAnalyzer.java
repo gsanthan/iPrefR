@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import model.Outcome;
 import model.PerformanceRecord;
 import model.WorkingPreferenceModel;
-
 import verify.TraceFormatter;
 import verify.TraceFormatterFactory;
 
@@ -44,7 +44,7 @@ public class PerformanceAnalyzer {
 	 * @param record
 	 * @param outcome
 	 */
-	public static void addPerformanceRecord(PerformanceRecord record, Set<String> outcome) {
+	public static void addPerformanceRecord(PerformanceRecord record, Outcome outcome) {
 		record.setOutcome(outcome);
 		records.add(record);
 	}
@@ -53,9 +53,9 @@ public class PerformanceAnalyzer {
 	 * Prints the stored performance records 
 	 */
 	public static void printRecords() {
-		System.out.println("Performance Records: ");
+		OutputUtil.println("Performance Records: ");
 		for (PerformanceRecord record : records) {
-			System.out.println("@@## "+record);
+			OutputUtil.println("@@## "+record);
 		}
 	}
 	
@@ -64,7 +64,7 @@ public class PerformanceAnalyzer {
 	 * @param outcome
 	 * @throws IOException
 	 */
-	public static void addLatestPerformanceRecord(Set<String> outcome ) throws IOException {
+	public static void addLatestPerformanceRecord(Outcome outcome) throws IOException {
 		addPerformanceRecord(getPerformanceRecordForLastQuery(), outcome);
 	}
 	

@@ -1,6 +1,9 @@
 package util;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Provides basic String utility methods
@@ -52,7 +55,7 @@ public class StringUtil {
 	 * @param strings
 	 * @return Comma separated List of Strings
 	 */
-	public static String commaSeparated(List<String> strings) {
+	public static String commaSeparated(Collection<String> strings) {
 		String formattedString = new String();
 		for(String v : strings) {
 			if(!formattedString.isEmpty()) {
@@ -61,5 +64,69 @@ public class StringUtil {
 			formattedString = formattedString + v;
 		}
 		return formattedString;
+	}
+	
+	/**
+	 * Returns a comma separated list of Strings in a List, adding a prefix to each string
+	 * @param strings
+	 * @return Comma separated List of Strings
+	 */
+	public static String commaSeparatedPrefixed(Collection<String> strings, String prefix) {
+		String formattedString = new String();
+		for(String v : strings) {
+			if(!formattedString.isEmpty()) {
+				formattedString = formattedString + ",";
+			}
+			formattedString = formattedString + prefix + v;
+		}
+		return formattedString;
+	}
+	
+	/**
+	 * Returns a comma separated list of Strings in a List, adding a suffix to each string
+	 * @param strings
+	 * @return Comma separated List of Strings
+	 */
+	public static String commaSeparatedSuffixed(Collection<String> strings, String suffix) {
+		String formattedString = new String();
+		for(String v : strings) {
+			if(!formattedString.isEmpty()) {
+				formattedString = formattedString + ",";
+			}
+			formattedString = formattedString + v + suffix;
+		}
+		return formattedString;
+	}
+	/**
+	 * Returns a comma separated list of each item's toString() in the Collection
+	 * @param <K>
+	 * @param strings
+	 * @return Comma separated List of Strings
+	 */
+	public static <K> String commaSeparatedForCollectionAsString(Collection<K> objects) {
+		String formattedString = new String();
+		for(K v : objects) {
+			if(!formattedString.isEmpty()) {
+				formattedString = formattedString + ",";
+			}
+			formattedString = formattedString + v.toString();
+		}
+		return formattedString;
+	}
+
+	public static Set<String> parseToStringSet(String domain) {
+		Set<String> setOfStrings = new HashSet<String>();
+		domain = domain.trim();
+		if(domain.startsWith("{") && (domain.endsWith("}"))) {
+			domain = domain.substring(1, domain.length()-1);
+			setOfStrings = new HashSet<String>(Arrays.asList(domain.split(",")));
+		} else if(domain.startsWith("{") && (domain.endsWith("};"))) {
+			domain = domain.substring(1, domain.length()-2);
+			setOfStrings = new HashSet<String>(Arrays.asList(domain.split(",")));
+		} else if(domain.equalsIgnoreCase("boolean")){
+			setOfStrings.add("0");
+			setOfStrings.add("1");
+		}
+		return setOfStrings;
 	}
 }

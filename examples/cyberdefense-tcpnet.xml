@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+
+
+<!--
+	Bayesian network in XMLBIF v0.3 (BayesNet Interchange Format)
+	Produced by JavaBayes (http://www.cs.cmu.edu/~javabayes/
+	Number of nodes:4
+	Output created Mon Apr 12 13:17:34 CDT 2010
+-->
+
+
+
+<BIF VERSION="0.3">
+<NETWORK>
+<NAME>D:\Ganesh\Research\WIP\JAIR2013\example\cyberdefense-tcpnet.xml</NAME>
+<!-- Variables -->
+<VARIABLE TYPE="nature">
+    <NAME>V0</NAME>
+    <OUTCOME>0</OUTCOME>
+    <OUTCOME>1</OUTCOME>
+</VARIABLE>
+<!-- Variables -->
+<VARIABLE TYPE="nature">
+    <NAME>V1</NAME>
+    <OUTCOME>0</OUTCOME>
+    <OUTCOME>1</OUTCOME>
+</VARIABLE>
+<!-- Variables -->
+<VARIABLE TYPE="nature">
+    <NAME>V2</NAME>
+    <OUTCOME>0</OUTCOME>
+    <OUTCOME>1</OUTCOME>
+    <OUTCOME>TestVal</OUTCOME>
+    <!--<OUTCOME>TestValue</OUTCOME>-->
+</VARIABLE>
+
+<!-- Preferences -->
+ <CONDITIONAL-PREFERENCE>
+      <FOR>V0</FOR>
+     <TABLE>
+          <CPTROW><PARENTVALUE></PARENTVALUE><PREFERENCE>0>1</PREFERENCE></CPTROW>
+     </TABLE>
+ </CONDITIONAL-PREFERENCE>
+ <CONDITIONAL-PREFERENCE>
+      <FOR>V1</FOR>
+      <GIVEN>V0</GIVEN>
+     <TABLE>
+          <CPTROW><PARENTVALUE>V0=0</PARENTVALUE><PREFERENCE>1>0</PREFERENCE></CPTROW>
+          <CPTROW><PARENTVALUE>V0=1</PARENTVALUE><PREFERENCE>0>1</PREFERENCE></CPTROW>
+     </TABLE>
+ </CONDITIONAL-PREFERENCE>
+ <CONDITIONAL-PREFERENCE>
+      <FOR>V2</FOR>
+      <GIVEN>V0</GIVEN>
+            
+     <TABLE>
+          <CPTROW><PARENTVALUE>V0=1</PARENTVALUE><PREFERENCE>0>1,1>TestVal</PREFERENCE></CPTROW>
+          <CPTROW><PARENTVALUE>V0=0</PARENTVALUE><PREFERENCE>1>0,TestVal>1</PREFERENCE></CPTROW>
+     </TABLE>
+ </CONDITIONAL-PREFERENCE>
+ 
+<!-- Relative Importance Information -->
+     <REL-IMP>
+           <IMP-VARIABLE>V0</IMP-VARIABLE>
+     </REL-IMP>
+
+
+     <REL-IMP>
+           <IMP-VARIABLE>V1</IMP-VARIABLE>
+               <IMP-THAN>V2</IMP-THAN>
+     </REL-IMP>
+          <REL-IMP>
+           <IMP-VARIABLE>V2</IMP-VARIABLE>
+     </REL-IMP>
+</NETWORK>
+</BIF>

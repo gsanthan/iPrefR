@@ -1,9 +1,9 @@
 package verify;
 
+import java.util.Map;
 import java.util.Set;
 
 import model.WorkingPreferenceModel;
-
 import util.Constants;
 
 /**
@@ -21,7 +21,7 @@ public class SpecHelper {
 	 */
 	public static String getInitOutcomeSpec(Set<String> outcome) {
 		String spec = new String();
-		String[] variables = WorkingPreferenceModel.getPrefMetaData().getVariables();
+		String[] variables = WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables();
 		for (int j = 0; j < variables.length; j++) {
 			String variable = variables[j];
 			if(outcome.contains(variable)) {
@@ -40,9 +40,31 @@ public class SpecHelper {
 		return spec;
 	}
 	
+	public static String getInitOutcomeSpec(Map<String, String> assignment) {
+		String spec = new String();
+		if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.NuSMV) {
+			for (String variable : assignment.keySet()) {
+				spec += " init("+variable+"):="+assignment.get(variable)+"; ";			
+			} 
+		} else {
+			spec = "INIT ";
+			int counter = 0;
+			for (String variable : assignment.keySet()) {
+				if(counter > 0) {
+					spec += " & ";
+				}
+				counter ++;
+				spec += variable+" = "+assignment.get(variable);			
+			} 
+			spec += ";";
+		}
+			
+		return spec;
+	}
+	
 	public static String getInitChangeVariablesCondition() {
 		String spec = new String("(");
-		String[] variables = WorkingPreferenceModel.getPrefMetaData().getVariables();
+		String[] variables = WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables();
 		for (String variable : variables) {
 			if(spec.trim().length()>1) {
 				spec = spec + " & ";
@@ -60,7 +82,7 @@ public class SpecHelper {
 	 */
 	public static String getInitOutcomeSpecConstraintStyle(Set<String> outcome) {
 		String spec = new String();
-		String[] variables = WorkingPreferenceModel.getPrefMetaData().getVariables();
+		String[] variables = WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables();
 		for (int j = 0; j < variables.length; j++) {
 			String variable = variables[j];
 			if(spec.trim().length()>0) {

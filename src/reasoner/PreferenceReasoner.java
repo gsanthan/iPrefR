@@ -3,15 +3,15 @@ package reasoner;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import exception.PreferenceReasonerException;
-
+import model.Outcome;
 import model.OutcomeSequence;
 import model.PreferenceMetaData;
 import model.WorkingPreferenceModel;
-
 import util.PerformanceAnalyzer;
+import exception.PreferenceReasonerException;
 
 /**
  * The abstract class that defines the model checking based preference reasoning tasks 
@@ -29,7 +29,7 @@ public abstract class PreferenceReasoner {
 	 */
 	public String smvFileReverse;
 	/**
-	 * Preference variables in the model
+	 * Preference namesOfVariables in the model
 	 */
 	public String[] variables;
 	/**
@@ -50,7 +50,7 @@ public abstract class PreferenceReasoner {
 	public static OutcomeSequence outcomesInOrder = new OutcomeSequence();
 	
 	/**
-	 * Initializes the reasoner with SMV model, and retrieves and stores the preference variables used
+	 * Initializes the reasoner with SMV model, and retrieves and stores the preference namesOfVariables used
 	 * @param smvFile
 	 */
 	PreferenceReasoner(String smvFile) {
@@ -59,7 +59,7 @@ public abstract class PreferenceReasoner {
 		}
 		this.smvFile = smvFile;
 		WorkingPreferenceModel.setPrefMetaData(new PreferenceMetaData(smvFile));
-		this.variables = WorkingPreferenceModel.getPrefMetaData().getVariables();
+		this.variables = WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables();
 		currentMaximalOutcomes = new ArrayList<String[]>();
 		invariants = new ArrayList<String>();
 		resetGeneratedOutcomes();
@@ -76,11 +76,22 @@ public abstract class PreferenceReasoner {
 		this.smvFileReverse = smvFileReverse;
 		WorkingPreferenceModel.setPrefMetaData(new PreferenceMetaData(smvFile));
 		WorkingPreferenceModel.setPrefMetaDataReverse(new PreferenceMetaData(smvFileReverse));
-		this.variables = WorkingPreferenceModel.getPrefMetaData().getVariables();
+		this.variables = WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables();
 		currentMaximalOutcomes = new ArrayList<String[]>();
 		invariants = new ArrayList<String>();
 		resetGeneratedOutcomes();
 	}
+	
+	/**
+	 * Dominance Testing: Does morePreferredOutcome dominate lessPreferredOutcome? Returns true or false.
+	 * 
+	 * @param outcome
+	 * @param outcome2
+	 * @return Result of dominance testing: true or false
+	 * @throws Exception
+	 */
+	public abstract boolean dominates(Outcome outcome,
+			Outcome outcome2) throws Exception;
 	
 	/**
 	 * Dominance Testing: Does morePreferredOutcome dominate lessPreferredOutcome? Returns true or false.
@@ -90,9 +101,9 @@ public abstract class PreferenceReasoner {
 	 * @return Result of dominance testing: true or false
 	 * @throws Exception
 	 */
-	public abstract boolean dominates(Set<String> morePreferredOutcome,
-			Set<String> lessPreferredOutcome) throws Exception;
-	
+	/*public abstract boolean dominates(Map<String, String> morePreferredOutcome,
+			Map<String, String> lessPreferredOutcome) throws Exception;
+	*/
 	/**
 	 * Consistency Testing: Is the induced preference graph cycle-free? Returns true or false.
 	 * 
@@ -109,7 +120,7 @@ public abstract class PreferenceReasoner {
 	 * @throws IOException
 	 * @throws PreferenceReasonerException 
 	 */
-	public abstract Set<String> nextPreferred() throws IOException, PreferenceReasonerException;
+	public abstract Outcome nextPreferred() throws IOException, PreferenceReasonerException;
 	
 	/**
 	 * Computes the set of all outcomes at level i, including those in cycles or strongly connected components (SCCs) in the induced preference graph. 
@@ -207,7 +218,7 @@ public abstract class PreferenceReasoner {
 	 * @throws IOException
 	 */
 	public static int addOutcomeSequenceToGeneratedSequence(OutcomeSequence outcomeSequence) throws IOException {
-		for(Set<String> outcome : outcomeSequence.getOutcomeSequence()) {
+		for(Outcome outcome : outcomeSequence.getOutcomeSequence()) {
 			outcomesInOrder.addOutcome(outcome);
 //			PerformanceAnalyzer.addLatestPerformanceRecord(outcome);
 		}
@@ -221,7 +232,7 @@ public abstract class PreferenceReasoner {
 	 * @return Total number of outcomes generated so far
 	 * @throws IOException
 	 */
-	public static int addOutcomeToGeneratedSequence(Set<String> outcome) throws IOException {
+	public static int addOutcomeToGeneratedSequence(Outcome outcome) throws IOException {
 		outcomesInOrder.addOutcome(outcome);
 		PerformanceAnalyzer.addLatestPerformanceRecord(outcome);
 		return outcomesInOrder.getOutcomeSequence().size();

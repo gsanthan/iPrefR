@@ -13,8 +13,8 @@ import model.WorkingPreferenceModel;
 public class OutcomeFormatter {
 
 	/**
-	 * Returns a String that contains the assignment of preference variables to valuations corresponding to the input outcome.
-	 * Note: The returned String is formatted as a conjunctive boolean formula assuming binary domain for the variables.
+	 * Returns a String that contains the assignment of preference namesOfVariables to valuations corresponding to the input outcome.
+	 * Note: The returned String is formatted as a conjunctive boolean formula assuming binary domain for the namesOfVariables.
 	 *    
 	 * @param outcome An array names of preference variable that have valuation 1 in the outcome
 	 * @return Formatted outcome string
@@ -22,7 +22,7 @@ public class OutcomeFormatter {
 	public static String formatOutcome(String[] outcome) {
 		String formattedOutcome = new String();
 		List<String> outcomeAsList = Arrays.asList(outcome);
-		for (String var : WorkingPreferenceModel.getPrefMetaData().getVariables()) {
+		for (String var : WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables()) {
 			if(formattedOutcome.trim().length()>0) {
 				formattedOutcome = formattedOutcome + " & ";
 			}
@@ -37,16 +37,16 @@ public class OutcomeFormatter {
 	}
 	
 	/**
-	 * Returns a String that contains the assignment of preference and change variables to valuations corresponding to the input outcome.
-	 * Note: The returned String is formatted as a conjunctive boolean formula assuming binary domain for the variables.
+	 * Returns a String that contains the assignment of preference and change namesOfVariables to valuations corresponding to the input outcome.
+	 * Note: The returned String is formatted as a conjunctive boolean formula assuming binary domain for the namesOfVariables.
 	 *    
-	 * @param outcome An array names of preference variables and change variables that have valuation 1 in the outcome
-	 * @return Formatted outcome with change variables' valuations
+	 * @param outcome An array names of preference namesOfVariables and change namesOfVariables that have valuation 1 in the outcome
+	 * @return Formatted outcome with change namesOfVariables' valuations
 	 */
 	public static String formatOutcomeWithChangeVariables(String[] outcome) {
 		String formattedOutcome = new String();
 		List<String> outcomeAsList = Arrays.asList(outcome);
-		for (String var : WorkingPreferenceModel.getPrefMetaData().getVariables()) {
+		for (String var : WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables()) {
 			if(formattedOutcome.trim().length()>0) {
 				formattedOutcome = formattedOutcome + " & ";
 			}

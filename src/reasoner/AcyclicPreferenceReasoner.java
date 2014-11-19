@@ -5,19 +5,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import exception.PreferenceReasonerException;
-
+import model.Outcome;
 import model.OutcomeSequence;
 import model.PreferenceMetaData;
 import model.WorkingPreferenceModel;
-
 import util.Constants;
 import util.OutcomeFormatter;
+import util.OutputUtil;
 import verify.ModelCheckingDelegate;
 import verify.SpecHelper;
 import verify.TraceFormatterFactory;
+import exception.PreferenceReasonerException;
 
 /**
  * A Preference Reasoner for (T)CP-nets and CI-nets with support for the following reasoning tasks:
@@ -34,23 +35,20 @@ import verify.TraceFormatterFactory;
 public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 	
 	/**
-	 * Initializes the SMV file, parses the model and retrieves the variables, and makes the reasoner ready for reasoning tasks 
+	 * Initializes the SMV file, parses the model and retrieves the namesOfVariables, and makes the reasoner ready for reasoning tasks 
 	 * @param smvFile
 	 */
 	public AcyclicPreferenceReasoner(String smvFile) {
 		super(smvFile);
 	}
-	
-	/* (non-Javadoc)
-	 * @see translate.PreferenceReasoner#dominates(java.lang.String[], java.lang.String[])
-	 */
-	public boolean dominates(Set<String> morePreferredOutcome, Set<String>  lessPreferredOutcome) throws Exception {
 		
-		System.out.println("Does " + morePreferredOutcome + " dominate " + lessPreferredOutcome + "?");
+	public boolean dominates(Outcome morePreferredOutcome, Outcome lessPreferredOutcome) throws Exception {
+		
+		OutputUtil.println("Does " + morePreferredOutcome + " dominate " + lessPreferredOutcome + "?");
 		
 		//Don't need to compute anything if the outcomes are the same
-		if(morePreferredOutcome.equals(lessPreferredOutcome)) {
-			System.out.println("Dominance does not hold");
+		if(morePreferredOutcome.getOutcomeAsValuationMap().equals(lessPreferredOutcome.getOutcomeAsValuationMap())) {
+			OutputUtil.println("Dominance does not hold");
 			return false;
 		}
 		
@@ -92,7 +90,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 			System.out.print("Proof of dominance: ");
 			c.printOutcomeSequence();
 		} else {
-			System.out.println("Dominance does not hold");
+			OutputUtil.println("Dominance does not hold");
 		}
 		return dominates;
 	}
@@ -117,9 +115,9 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 
 			System.out.print("Not consistent; Cycle found: ");
 			c.printOutcomeSequence();
-			System.out.println();
+			OutputUtil.println();
 		} else {
-			System.out.println("Consistent");
+			OutputUtil.println("Consistent");
 		}
 		return consistent;
 	}
@@ -137,7 +135,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 	/* (non-Javadoc)
 	 * @see translate.PreferenceReasoner#nextPreferred()
 	 */
-	public Set<String> nextPreferred() throws IOException, PreferenceReasonerException {
+	public Outcome nextPreferred() throws IOException, PreferenceReasonerException {
 		
 		//Append the spec corresponding to the property that there is no (maximal) outcome 
 		//in the current (induced preference graph) model 
@@ -156,10 +154,10 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 		boolean result = ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
 		
 		if(Constants.LOG_VERIFICATION_SPECS) {
-			System.out.println(result);
+			OutputUtil.println(result);
 		}
 		
-		Set<String> pref;
+		Outcome pref;
 		if(result == true) {
 			OutcomeSequence currentMaximal = new OutcomeSequence();
 			currentMaximal.addOutcomeSequenceAsArray(currentMaximalOutcomes);
@@ -175,7 +173,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 			currentMaximalOutcomes.add(currentPreferred);
 			
 			//Return the found next preferred outcome at the current level
-			pref = new HashSet<String>(Arrays.asList(currentPreferred));
+			pref = new Outcome(new HashSet<String>(Arrays.asList(currentPreferred)));
 		}
 		return pref;
 	}
@@ -211,7 +209,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 	 */
 	public OutcomeSequence computeCurrentPreferredSet() throws IOException, PreferenceReasonerException {
 		
-		Set<String> next = null;
+		Outcome next = null;
 		OutcomeSequence visited = new OutcomeSequence();
 		boolean computedEnoughOutcomes = false;
 		do {
@@ -222,7 +220,8 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 				visited.addOutcome(next);
 				
 				//Stop if the user has set a maximum number of outcomes to be computed
-				if(addOutcomeSequenceToGeneratedSequence(new OutcomeSequence(next)) >= Constants.NUM_OUTCOMES) {
+				Outcome o = new Outcome(WorkingPreferenceModel.getPrefMetaData().getVariables());
+				if(addOutcomeSequenceToGeneratedSequence(new OutcomeSequence(o)) >= Constants.NUM_OUTCOMES) {
 					computedEnoughOutcomes = true;
 				}
 			}
@@ -287,7 +286,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 	 * @param better More preferred outcomes
 	 * @return
 	 */
-	private String getDominanceSpec(Set<String> worse, Set<String> better) {
+	private String getDominanceSpec(Outcome worse, Outcome better) {
 		String spec = new String();
 		String outcome1 = new String();
 		String outcome2 = new String();
@@ -306,7 +305,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 				readableOutcome2 = readableOutcome2 + ",";
 			}
 			
-			if(worse.contains(variable)) {
+			if(worse.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
 				//outcome1 is worse than outcome2
 				outcome1 = outcome1 + variables[j] + "=" + "1";
 				readableOutcome1 = readableOutcome1 + variable;
@@ -314,7 +313,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 				outcome1 = outcome1 + variables[j] + "=" + "0";
 			}
 
-			if(better.contains(variable)) {
+			if(better.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
 				//outcome2 is better than outcome1
 				outcome2 = outcome2 + variables[j] + "=" + "1";
 				readableOutcome2 = readableOutcome2 + variable;
@@ -328,13 +327,15 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 		return spec;
 	}
 	
+	
+	
 	/**
 	 * Returns a CTL property specifying that there is no path from outcome1 to outcome 2 (outcome2 is better than outcome1)
 	 * @param worse Less preferred outcome
 	 * @param better More preferred outcomes
 	 * @return
 	 */
-	private String getNegatedDominanceSpec(Set<String> worse, Set<String> better) {
+	private String getNegatedDominanceSpec(Outcome worse, Outcome better) {
 		String spec = new String();
 		String outcome1 = new String();
 		String outcome2 = new String();
@@ -352,7 +353,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 				readableOutcome2 = readableOutcome2 + ",";
 			}
 			
-			if(worse.contains(variable)) {
+			if(worse.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
 				//outcome1 is worse than outcome2
 				outcome1 = outcome1 + variables[j] + "=" + "1";
 				readableOutcome1 = readableOutcome1 + variable;
@@ -360,7 +361,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 				outcome1 = outcome1 + variables[j] + "=" + "0";
 			}
 			
-			if(better.contains(variable)) {
+			if(better.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
 				//outcome2 is better than outcome1
 				outcome2 = outcome2 + variables[j] + "=" + "1";
 				readableOutcome2 = readableOutcome2 + variable;

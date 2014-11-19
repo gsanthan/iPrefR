@@ -18,27 +18,34 @@ import exception.PreferenceReasonerException;
  */
 public class Constants {
 
-	public static final String CONFIG_EXCEPTION_PROPERTIES = "config\\exception.properties";
-	public static final String CONFIG_REASONER_PROPERTIES = "config\\reasoner.properties";
+	public static final String CONFIG_EXCEPTION_PROPERTIES = "/exception.properties";
+	public static final String CONFIG_REASONER_PROPERTIES = "/reasoner.properties";
+	public static boolean OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT = true;
+	public static final String CONFIG_RUNTIME_PROPERTIES = "/runtime.properties";
 	
 	/**
 	 * 
-	 * 	Minimum number of variables to start experiments with
+	 * 	Minimum number of namesOfVariables to start experiments with
 	 */
 	public static int MIN_VAR_SIZE = 4;
 	/**
-	 * Maximum number of variables to start experiments with
+	 * Maximum number of namesOfVariables to start experiments with
 	 */
 	public static int MAX_VAR_SIZE = 5;
 	/**
-	 * Step increment interval for the number of variables 
+	 * Step increment interval for the number of namesOfVariables 
 	 */
 	public static int VAR_SIZE_INCREMENT = 1;
 	
 	/**
+	 * Is the CPT_SIZE number of statements per variable or total number of statements ? 
+	 */
+	public static boolean IS_CPT_PER_VAR = true;
+	
+	/**
 	 * Minimum number of rows in the conditional preference table 
 	 */
-	public static int MIN_CPT_SIZE = 5;
+	public static int MIN_CPT_SIZE = 4;
 	/**
 	 * Maximum number of rows in the conditional preference table
 	 */
@@ -46,16 +53,17 @@ public class Constants {
 	/**
 	 * Step increment interval for the number of rows in the conditional preference table 
 	 */
-	public static int CPT_SIZE_INCREMENT = 5;
+	public static int CPT_SIZE_INCREMENT = 1;
 
 	/**
 	 * Number of preference specification samples to be generated for each combination of experimental parameters
 	 */
 	public static int NUM_PREF_FILES = 10;
+	
 	/**
 	 * Number of preference (dominance test) specifications that each sample is to be tested with
 	 */
-	public static int NUM_SPECS = 0;
+	public static int NUM_SPECS = 2;
 	
 	/**
 	 * Starting value of the maximum degree allowed for each node in the conditional dependency graph
@@ -82,7 +90,7 @@ public class Constants {
 	/**
 	 * Symbol used for representing the preference relation in the preference specification files  
 	 */
-	public static String PREFERENCE_SYMBOL_IN_XML = ">"; 
+	public static String PREFERENCE_SYMBOL_IN_XML = ":"; 
 	/**
 	 * Symbol used for delimiting the various preference relations specifying a strict partial order 
 	 */
@@ -101,6 +109,7 @@ public class Constants {
 	 * Specifies whether cycles are allowed or not in the preference specifications
 	 */
 	public static boolean CYCLES_ALLOWED = false;
+	
 	/**
 	 * Specifies whether each spec generated has to be verified by individual verification runs 
 	 */
@@ -109,11 +118,11 @@ public class Constants {
 	/**
 	 * Folder containing the preference specification files
 	 */
-	public static String FOLDER = "I:\\Ganesh\\Research\\CIKM 2012\\experiments\\tcpnet-cadence\\";
+	public static String FOLDER = "E:\\output1\\";
 	/**
 	 * Base file name format of the the preference specification files
 	 */
-	public static String BASE_FILE = Constants.FOLDER+"tcpnet--";
+	public static String BASE_FILE = Constants.FOLDER+"cptheory--";
 	/**
 	 * Result file name format 
 	 */
@@ -176,5 +185,7 @@ public class Constants {
 	/**
 	 * Specifies whether the properties constructed for verification and their results are to be logged or not 
 	 */
-	public static boolean LOG_VERIFICATION_SPECS = false;
+	public static boolean LOG_VERIFICATION_SPECS = true;
+	public static boolean LOG_OUTPUT = true;
+	public static String RESULT_PREFIX = "result--";
 }
