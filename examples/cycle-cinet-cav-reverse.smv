@@ -1,0 +1,72 @@
+MODULE main
+
+VAR
+  a : {0,1};
+  b : {0,1};
+  c : {0,1};
+  d : {0,1};
+  cha : {0,1};
+  chb : {0,1};
+  chc : {0,1};
+  chd : {0,1};
+  gch : {0,1};
+
+ASSIGN
+  init(cha) := 0;
+  init(chb) := 0;
+  init(chc) := 0;
+  init(chd) := 0;
+  next(a) :=
+    case
+      a=1 & cha=1 & ((b=1 & chb=0) | (b=0 & chb=1)) & ((c=1 & chc=0) | (c=0 & chc=1)) & ((d=1 & chd=0) | (d=0 & chd=1)): 0;
+      c=0 & a=0 & cha=1 & d=0 & chd=1 & b=1 & chb=1 & cha=1 & chb=1 & chc=0 & chd=1: 1;
+      TRUE: a;
+    esac;
+  next(b) :=
+    case
+      b=1 & chb=1 & ((a=1 & cha=0) | (a=0 & cha=1)) & ((c=1 & chc=0) | (c=0 & chc=1)) & ((d=1 & chd=0) | (d=0 & chd=1)): 0;
+      d=1 & b=0 & chb=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=0: 1;
+      a=0 & b=0 & chb=1 & d=0 & chd=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=1: 1;
+      a=1 & c=0 & b=0 & chb=1 & d=1 & chd=1 & cha=0 & chb=1 & chc=0 & chd=1: 1;
+      c=0 & a=0 & cha=1 & d=0 & chd=1 & b=1 & chb=1 & cha=1 & chb=1 & chc=0 & chd=1: 0;
+      TRUE: b;
+    esac;
+  next(c) :=
+    case
+      c=1 & chc=1 & ((a=1 & cha=0) | (a=0 & cha=1)) & ((b=1 & chb=0) | (b=0 & chb=1)) & ((d=1 & chd=0) | (d=0 & chd=1)): 0;
+      d=1 & b=0 & chb=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=0: 0;
+      b=1 & a=0 & c=0 & chc=1 & d=1 & chd=1 & cha=0 & chb=0 & chc=1 & chd=1: 1;
+      a=0 & b=0 & chb=1 & d=0 & chd=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=1: 0;
+      TRUE: c;
+    esac;
+  next(d) :=
+    case
+      d=1 & chd=1 & ((a=1 & cha=0) | (a=0 & cha=1)) & ((b=1 & chb=0) | (b=0 & chb=1)) & ((c=1 & chc=0) | (c=0 & chc=1)): 0;
+      b=1 & a=0 & c=0 & chc=1 & d=1 & chd=1 & cha=0 & chb=0 & chc=1 & chd=1: 0;
+      a=0 & b=0 & chb=1 & d=0 & chd=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=1: 1;
+      a=1 & c=0 & b=0 & chb=1 & d=1 & chd=1 & cha=0 & chb=1 & chc=0 & chd=1: 0;
+      c=0 & a=0 & cha=1 & d=0 & chd=1 & b=1 & chb=1 & cha=1 & chb=1 & chc=0 & chd=1: 1;
+      TRUE: d;
+    esac;
+  init(gch) := 0;
+  next(gch) :=
+    case
+      --gch=1: 0;
+      a=1 & cha=1 & ((b=1 & chb=0) | (b=0 & chb=1)) & ((c=1 & chc=0) | (c=0 & chc=1)) & ((d=1 & chd=0) | (d=0 & chd=1)): 1;
+      c=0 & a=0 & cha=1 & d=0 & chd=1 & b=1 & chb=1 & cha=1 & chb=1 & chc=0 & chd=1: 1;
+      b=1 & chb=1 & ((a=1 & cha=0) | (a=0 & cha=1)) & ((c=1 & chc=0) | (c=0 & chc=1)) & ((d=1 & chd=0) | (d=0 & chd=1)): 1;
+      d=1 & b=0 & chb=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=0: 1;
+      a=0 & b=0 & chb=1 & d=0 & chd=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=1: 1;
+      a=1 & c=0 & b=0 & chb=1 & d=1 & chd=1 & cha=0 & chb=1 & chc=0 & chd=1: 1;
+      c=0 & a=0 & cha=1 & d=0 & chd=1 & b=1 & chb=1 & cha=1 & chb=1 & chc=0 & chd=1: 1;
+      c=1 & chc=1 & ((a=1 & cha=0) | (a=0 & cha=1)) & ((b=1 & chb=0) | (b=0 & chb=1)) & ((d=1 & chd=0) | (d=0 & chd=1)): 1;
+      d=1 & b=0 & chb=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=0: 1;
+      b=1 & a=0 & c=0 & chc=1 & d=1 & chd=1 & cha=0 & chb=0 & chc=1 & chd=1: 1;
+      a=0 & b=0 & chb=1 & d=0 & chd=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=1: 1;
+      d=1 & chd=1 & ((a=1 & cha=0) | (a=0 & cha=1)) & ((b=1 & chb=0) | (b=0 & chb=1)) & ((c=1 & chc=0) | (c=0 & chc=1)): 1;
+      b=1 & a=0 & c=0 & chc=1 & d=1 & chd=1 & cha=0 & chb=0 & chc=1 & chd=1: 1;
+      a=0 & b=0 & chb=1 & d=0 & chd=1 & c=1 & chc=1 & cha=0 & chb=1 & chc=1 & chd=1: 1;
+      a=1 & c=0 & b=0 & chb=1 & d=1 & chd=1 & cha=0 & chb=1 & chc=0 & chd=1: 1;
+      c=0 & a=0 & cha=1 & d=0 & chd=1 & b=1 & chb=1 & cha=1 & chb=1 & chc=0 & chd=1: 1;
+      TRUE: 0;
+    esac;

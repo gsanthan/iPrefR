@@ -1,0 +1,31 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="PREFERENCE-SPECIFICATION">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element type="xs:string" name="FILE-NAME"/>
+        <xs:element name="PREFERENCE-VARIABLE" maxOccurs="unbounded" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element type="xs:string" name="VARIABLE-NAME"/>
+              <xs:element type="xs:string" name="DOMAIN-VALUE" maxOccurs="unbounded" minOccurs="0"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="PREFERENCE-STATEMENT" maxOccurs="unbounded" minOccurs="0">
+          <xs:annotation>
+            <xs:documentation>Preferences</xs:documentation>
+          </xs:annotation>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element type="xs:string" name="ID"/>
+              <xs:element type="xs:string" name="PREFERENCE-VARIABLE"/>
+              <xs:element type="xs:string" name="CONDITION" maxOccurs="unbounded" minOccurs="0"/>
+              <xs:element type="xs:string" name="PREFERENCE" maxOccurs="unbounded" minOccurs="0"/>
+              <xs:element type="xs:string" name="REGARDLESS-OF" maxOccurs="unbounded" minOccurs="0"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

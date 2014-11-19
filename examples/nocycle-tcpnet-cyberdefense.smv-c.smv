@@ -1,0 +1,79 @@
+MODULE main
+
+VAR
+  xe : {Functional,Unproven};
+  xa : {LO,HI};
+  xf : {Unavailable,OfficialFix};
+  chxe : {0,1};
+  chxa : {0,1};
+  chxf : {0,1};
+  gch : {0,1};
+
+DEFINE
+  change := chxe | chxa | chxf;
+
+ASSIGN
+  init(chxe) := 0;
+  next(xe) :=
+    case
+      -- conditional preference: xe depends on []
+      xe=Unproven & chxe=1 & chxa=0 & chxf=0 : Functional;
+      -- relative importance interpreted according to Wilson's semantics:
+      -- relative importance: xe >> []
+      -- relative importance: xe << [xa]
+      -- relative importance: xe << xa
+      xa=HI & chxa=1 & chxf=0 & xe=0 & chxe=0 : 0;
+      xa=HI & chxa=1 & chxf=0 & xe=0 & chxe=1 : 1;
+      xa=HI & chxa=1 & chxf=0 & xe=1 & chxe=0 : 1;
+      xa=HI & chxa=1 & chxf=0 & xe=1 & chxe=1 : 0;
+      1 : xe;
+    esac;
+  init(chxa) := 0;
+  next(xa) :=
+    case
+      -- conditional preference: xa depends on []
+      xa=HI & chxa=1 & chxe=0 & chxf=0 : LO;
+      -- relative importance interpreted according to Wilson's semantics:
+      -- relative importance: xa >> [xe]
+      xa=HI & chxf=0 & chxa=1 : LO;
+      -- relative importance: xa << []
+      1 : xa;
+    esac;
+  init(chxf) := 0;
+  next(xf) :=
+    case
+      -- conditional preference: xf depends on [xe]
+      xf=OfficialFix & xe=Functional & chxf=1 & chxe=0 & chxa=0 : Unavailable;
+      -- relative importance interpreted according to Wilson's semantics:
+      -- relative importance: xf >> []
+      -- relative importance: xf << []
+      1 : xf;
+    esac;
+  init(gch) := 0;
+  next(gch) :=
+    case
+      -- conditional preference: xe depends on []
+      xe=Unproven & chxe=1 & chxa=0 & chxf=0  & change : 1;
+      -- relative importance interpreted according to Wilson's semantics:
+      -- relative importance: xe >> []
+      -- relative importance: xe << [xa]
+      -- relative importance: xe << xa
+      xa=HI & chxa=1 & chxf=0 & xe=0 & chxe=0  & change : 1;
+      xa=HI & chxa=1 & chxf=0 & xe=0 & chxe=1  & change : 1;
+      xa=HI & chxa=1 & chxf=0 & xe=1 & chxe=0  & change : 1;
+      xa=HI & chxa=1 & chxf=0 & xe=1 & chxe=1  & change : 1;
+      -- conditional preference: xa depends on []
+      xa=HI & chxa=1 & chxe=0 & chxf=0  & change : 1;
+      -- relative importance interpreted according to Wilson's semantics:
+      -- relative importance: xa >> [xe]
+      xa=HI & chxf=0 & chxa=1  & change : 1;
+      -- relative importance: xa << []
+      -- conditional preference: xf depends on [xe]
+      xf=OfficialFix & xe=Functional & chxf=1 & chxe=0 & chxa=0  & change : 1;
+      -- relative importance interpreted according to Wilson's semantics:
+      -- relative importance: xf >> []
+      -- relative importance: xf << []
+      TRUE: 0;
+    esac;
+
+LTLSPEC F G (gch=0)

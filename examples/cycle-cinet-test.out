@@ -1,0 +1,29 @@
+{
+/* description */ "(EF (gch=1)) "
+/* identifier  */ {\typeIOutcome }
+/* truth value */ 0
+/* loop begins */ 0
+/* time */ 1349468584
+{
+/* state 1 */{
+# 1 "$noline$"
+\a  = 1,
+# 1 "$noline$"
+\b  = 1,
+# 1 "$noline$"
+\c  = 1,
+#16 "cycle-cinet-test.smv"
+\cha  = 0,
+#17 "cycle-cinet-test.smv"
+\chb  = 0,
+#18 "cycle-cinet-test.smv"
+\chc  = 0,
+#19 "cycle-cinet-test.smv"
+\chd  = 0,
+# 1 "$noline$"
+\d  = 1,
+#44 "cycle-cinet-test.smv"
+\gch  = 0
+}
+}
+}

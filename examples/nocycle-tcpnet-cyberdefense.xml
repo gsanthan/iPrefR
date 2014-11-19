@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+
+<NETWORK>
+
+<NAME>nocycle</NAME>
+
+<VARIABLE TYPE="preference">
+    <NAME>xe</NAME>
+    <OUTCOME>Functional</OUTCOME>
+    <OUTCOME>Unproven</OUTCOME>
+</VARIABLE>
+
+<VARIABLE TYPE="preference">
+    <NAME>xa</NAME>
+    <OUTCOME>LO</OUTCOME>
+    <OUTCOME>HI</OUTCOME>
+</VARIABLE>
+
+<VARIABLE TYPE="preference">
+    <NAME>xf</NAME>
+    <OUTCOME>Unavailable</OUTCOME>
+    <OUTCOME>OfficialFix</OUTCOME>
+</VARIABLE>
+
+ <CONDITIONAL-PREFERENCE>
+     <FOR>xe</FOR>
+     <TABLE>
+          <CPTROW><PARENTVALUE></PARENTVALUE><PREFERENCE>Functional>Unproven</PREFERENCE></CPTROW>
+     </TABLE>
+ </CONDITIONAL-PREFERENCE>
+ 
+ <CONDITIONAL-PREFERENCE>
+     <FOR>xa</FOR>
+     <TABLE>
+          <CPTROW><PARENTVALUE></PARENTVALUE><PREFERENCE>LO>HI</PREFERENCE></CPTROW>
+     </TABLE> 
+ </CONDITIONAL-PREFERENCE>
+ 
+ <CONDITIONAL-PREFERENCE>
+     <FOR>xf</FOR>
+     <GIVEN>xe</GIVEN>
+     <TABLE>
+          <CPTROW><PARENTVALUE>xe=Functional</PARENTVALUE><PREFERENCE>Unavailable>OfficialFix</PREFERENCE></CPTROW>
+     </TABLE>
+ </CONDITIONAL-PREFERENCE>
+ 
+<!-- Relative Importance Information -->
+
+     <REL-IMP>
+           <IMP-VARIABLE>xe</IMP-VARIABLE>
+     </REL-IMP>
+     
+     <REL-IMP>
+           <IMP-VARIABLE>xa</IMP-VARIABLE>
+           		<IMP-THAN>xe</IMP-THAN>
+     </REL-IMP>
+     
+     <REL-IMP>
+           <IMP-VARIABLE>xf</IMP-VARIABLE>
+     </REL-IMP>
+
+</NETWORK>
+

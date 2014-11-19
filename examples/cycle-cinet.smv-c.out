@@ -1,0 +1,9 @@
+{
+/* description */ "((~(EF psi_i_TypeII))|psi_i_TypeII) "
+/* identifier  */ {\findCycle }
+/* truth value */ 1
+/* loop begins */ 0
+/* time */ 1349793769
+{
+}
+}

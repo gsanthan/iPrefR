@@ -1,0 +1,255 @@
+{
+time = 1349795549
+time = \consistency 
+mc_time = 0.015600
+}
+{
+time = 1349795550
+time = \verifyCandidateCycle 
+mc_time = 0.015600
+}
+{
+time = 1349795550
+time = \findCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795550
+time = \typeIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795550
+time = \typeIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795550
+time = \typeIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795550
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795550
+time = \typeIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795550
+time = \typeIIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795550
+time = \verifyCandidateCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795550
+time = \typeIIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795550
+time = \verifyCandidateCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795551
+time = \typeIIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795551
+time = \verifyCandidateCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795551
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795551
+time = \verifyCandidateCycle 
+mc_time = 0.015600
+}
+{
+time = 1349795551
+time = \findCycle 
+mc_time = 0.015600
+}
+{
+time = 1349795552
+time = \findCycle 
+mc_time = 0.015600
+}
+{
+time = 1349795552
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795552
+time = \typeIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795552
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795552
+time = \verifyCandidateCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795552
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795552
+time = \verifyCandidateCycle 
+mc_time = 0.015600
+}
+{
+time = 1349795552
+time = \findCycle 
+mc_time = 0.015600
+}
+{
+time = 1349795552
+time = \findCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795553
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795553
+time = \typeIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795553
+time = \typeIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795553
+time = \typeIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795553
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795553
+time = \typeIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795553
+time = \typeIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795554
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795554
+time = \verifyCandidateCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795554
+time = \findCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795554
+time = \findCycle 
+mc_time = 0.015600
+}
+{
+time = 1349795554
+time = \findCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795554
+time = \findCycle 
+mc_time = 0.000000
+}
+{
+time = 1349795554
+time = \typeIIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795555
+time = \verifyCandidateCycle 
+mc_time = 0.015600
+}
+{
+time = 1349795555
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795555
+time = \typeIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795555
+time = \typeIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795555
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795555
+time = \typeIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795555
+time = \typeIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795555
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795555
+time = \typeIOutcome 
+mc_time = 0.015600
+}
+{
+time = 1349795555
+time = \typeIIOutcome 
+mc_time = 0.000000
+}
+{
+time = 1349795556
+time = \consistency 
+mc_time = 0.015600
+}

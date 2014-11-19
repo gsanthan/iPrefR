@@ -1,0 +1,9 @@
+{
+/* description */ "((~(EX (EX ((((a=1)&(b=1))&(c=1))&(d=1)))))|((((a=1)&(b=1))&(c=1))&(d= "
+/* identifier  */ {\typeIIOutcomeCandidate }
+/* truth value */ 1
+/* loop begins */ 0
+/* time */ 1350402880
+{
+}
+}
