@@ -134,32 +134,35 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 			ModelCheckingDelegate.verify(WorkingPreferenceModel.getPrefMetaData(), appendix, "dominates");
 			dominates = ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
 	//		OutputUtil.println("Result: " + dominates);
-			if(dominates && Constants.OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT) {
-				
-				//Return the proof of dominance: a path from the less preferred to the more preferred outcome
-				appendix.clear();
-				//Negate the spec used to test dominance, so that the model checker can provide the proof of dominance
-				spec = getNegatedDominanceSpec(worseAssignment,betterAssignment);
-	/*			
-				//Set the less preferred outcome as the initial state; 
-				//the model checker need only search for a path to the more preferred outcome  
-				String initSpec = SpecHelper.getInitOutcomeSpec(lessPreferredOutcome);
-				
-				//Append the initial state contraints and the property to be verified to the model 
-				appendix.add(initSpec);*/
-				
-				appendix.add(spec);
-				
-				//Verify 
-				ModelCheckingDelegate.verify(WorkingPreferenceModel.getPrefMetaData(), appendix, "counterToDominates");
-				//Model checker must return false, i.e., property is not verified 
-				ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
-				//Counter example provided by the model checker corresponds to the proof of dominance in the induced preference graph 
-				OutcomeSequence c = TraceFormatterFactory.createTraceFormatter().parsePathFromTrace(WorkingPreferenceModel.getPrefMetaData());
-				if(c.getOutcomeSequence().isEmpty()) {
-					throw new RuntimeException("Error computing dominance: see " + WorkingPreferenceModel.getPrefMetaData().getWorkingFile());
-				}
+			if(dominates ) {
 				if(Constants.LOG_OUTPUT) {
+					OutputUtil.println("Dominance holds.");
+				}
+				if(Constants.OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT) {
+					//Return the proof of dominance: a path from the less preferred to the more preferred outcome
+					appendix.clear();
+					//Negate the spec used to test dominance, so that the model checker can provide the proof of dominance
+					spec = getNegatedDominanceSpec(worseAssignment,betterAssignment);
+		/*			
+					//Set the less preferred outcome as the initial state; 
+					//the model checker need only search for a path to the more preferred outcome  
+					String initSpec = SpecHelper.getInitOutcomeSpec(lessPreferredOutcome);
+					
+					//Append the initial state contraints and the property to be verified to the model 
+					appendix.add(initSpec);*/
+					
+					appendix.add(spec);
+					
+					//Verify 
+					ModelCheckingDelegate.verify(WorkingPreferenceModel.getPrefMetaData(), appendix, "counterToDominates");
+					//Model checker must return false, i.e., property is not verified 
+					ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
+					//Counter example provided by the model checker corresponds to the proof of dominance in the induced preference graph 
+					OutcomeSequence c = TraceFormatterFactory.createTraceFormatter().parsePathFromTrace(WorkingPreferenceModel.getPrefMetaData());
+					if(c.getOutcomeSequence().isEmpty()) {
+						throw new RuntimeException("Error computing dominance: see " + WorkingPreferenceModel.getPrefMetaData().getWorkingFile());
+					}
+					
 					System.out.print("Proof of dominance: ");
 					c.printOutcomeSequence();
 				}

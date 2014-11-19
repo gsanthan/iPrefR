@@ -81,7 +81,7 @@ public class SpecGenerator {
 				outcome2 = outcome2 + variables[j] + "=" + randomValuation;
 				readableOutcome2 = readableOutcome2 + randomValuation;
 			}
-			specs[i] = "SPEC ("+ outcome1 + " -> EX EF (" + outcome2 + ")) -- "+ ctr + ". (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")";
+			specs[i] = "SPEC ("+ outcome1 + " -> EX EF (" + outcome2 + ")) -- "+ ctr + ". (" + readableOutcome1 + ") > (" + readableOutcome2 + ")";
 			OutputUtil.println(specs[i]);
 		}
 		
@@ -128,7 +128,7 @@ public class SpecGenerator {
 				outcome2 = outcome2 + var.getVariableName() + "=" + randomValuation;
 				readableOutcome2 = readableOutcome2 + randomValuation;
 			}
-			specs[i] = "SPEC ("+ outcome1 + " -> EX EF (" + outcome2 + ")) -- "+ ctr + ". (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")";
+			specs[i] = "SPEC ("+ outcome1 + " -> EX EF (" + outcome2 + ")) -- "+ ctr + ". (" + readableOutcome1 + ") > (" + readableOutcome2 + ")";
 			OutputUtil.println(specs[i]);
 		}
 		
@@ -176,7 +176,7 @@ public class SpecGenerator {
 			}
 			DominanceTestPair instance = new DominanceTestPair(new Outcome(first), new Outcome(second));
 			pairs.add(instance);
-			specs[i] = "SPEC ("+ outcome1 + " -> EX EF (" + outcome2 + ")) -- "+ ctr + ". (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")";
+			specs[i] = "SPEC ("+ outcome1 + " -> EX EF (" + outcome2 + ")) -- "+ ctr + ". (" + readableOutcome1 + ") > (" + readableOutcome2 + ")";
 			OutputUtil.println(specs[i]);
 			
 		}

@@ -124,7 +124,7 @@ public class OutcomeSequence {
 	 * Prints the set of outcomes in this OutcomeSequence 
 	 */
 	public void printOutcomeSequence() {
-		System.out.print("Sequence: ");
+		System.out.print("Sequence (only variables whose assignments change in a flip are displayed): ");
 		if(outcomeSequence == null || outcomeSequence.size()==0) {
 			OutputUtil.println("Empty!");
 		} else {
@@ -132,7 +132,7 @@ public class OutcomeSequence {
 			String s = new String();
 			for (Outcome o : outcomeSequence) {
 				s = s + (first?"":" -> ");
-				s = s + o.getOutcomeAsSetOfPositiveLiterals();
+				s = s + o.getOutcomeAsSetOfStringAssignments();
 				first = false;
 			}
 			OutputUtil.println(s);

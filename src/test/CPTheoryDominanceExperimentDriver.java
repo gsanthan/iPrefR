@@ -96,6 +96,8 @@ public class CPTheoryDominanceExperimentDriver {
 	}
 
 	public void dominancePerformanceTester(PreferenceReasoner reasoner, PreferenceSpecification prefSpec) throws Exception {
+		String dominanceProof = readFromConsole("Compute proof of dominance? (Y/N) ");
+		Constants.OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT = dominanceProof.trim().equalsIgnoreCase("Y")?true:false;
 		
 		int numSpecs = 0;
 		do {
