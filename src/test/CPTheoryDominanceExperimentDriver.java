@@ -1,5 +1,6 @@
 package test;
 
+import exception.PreferenceReasonerException;
 import generate.CPTheoryGenerator;
 import generate.SpecGenerator;
 
@@ -17,7 +18,9 @@ import java.util.Map;
 import model.DominanceTestPair;
 import model.Outcome;
 import model.PreferenceSpecification;
+import model.Query;
 import reasoner.CyclicPreferenceReasoner;
+import reasoner.PreferenceQueryParser;
 import reasoner.PreferenceReasoner;
 import translate.CPTheoryToSMVTranslator;
 import translate.PreferenceInputTranslator;
@@ -147,8 +150,13 @@ public class CPTheoryDominanceExperimentDriver {
 		Constants.FOLDER = workingDirectory;
 		
 		String xmlFile = "";
+		String choice = "";
 		do {
-			xmlFile = workingDirectory + File.separator + readFromConsole("Enter preference specification file (XML): ");
+			choice = readFromConsole("Enter [S] to start with a preference specification file (XML) or [Q] to start with a query file (XML) : ");
+		} while(!(choice.equalsIgnoreCase("S") || choice.equalsIgnoreCase("Q")));
+		
+		do {
+			xmlFile = workingDirectory + File.separator + readFromConsole("Enter the location of the XML file: ");  
 			f = new File(xmlFile);
 			if(!f.exists()) {
 				OutputUtil.println(xmlFile + " does not exist.");
@@ -158,7 +166,7 @@ public class CPTheoryDominanceExperimentDriver {
 		
 		String modelCheckerCommand = readFromConsole("Enter model checker command: ");
 		Constants.SMV_EXEC_COMMAND = modelCheckerCommand + " ";
-		 
+		
 		String modelChecker = readFromConsole("Enter model checker: ");
 		if(modelChecker == null){
 			throw new RuntimeException("Unsupported Model Checker");
@@ -170,17 +178,29 @@ public class CPTheoryDominanceExperimentDriver {
 			throw new RuntimeException("Unsupported model checker");
 		}
 		
-		PreferenceLanguage language = PreferenceLanguage.CPTheory;
 		CPTheoryToSMVTranslator translator = new CPTheoryToSMVTranslator();
 		PreferenceSpecification ps = null;
+		Query q = null;
 		try {
-			OutputUtil.println("Parsing preference specification ... "+xmlFile);
-			ps =  CPTheoryToSMVTranslator.parsePreferenceSpecification(xmlFile);
+			if(choice.equalsIgnoreCase("S")) {
+				OutputUtil.println("Parsing preference specification ... "+xmlFile);
+				ps =  CPTheoryToSMVTranslator.parsePreferenceSpecification(xmlFile);
+			} else {
+				OutputUtil.println("Parsing query specification ... "+xmlFile);
+				q = PreferenceQueryParser.parsePreferenceQuery(xmlFile);
+				q.executeQuery();
+				System.exit(0);
+			}
+			
 		} catch (FileNotFoundException e) {
 			OutputUtil.println("Unable to find/parse file " + xmlFile);
 			e.printStackTrace();
+			System.exit(-1);
+		} catch (PreferenceReasonerException e) {
+			OutputUtil.println("Unable to find/parse file " + xmlFile);
+			e.printStackTrace();
+			System.exit(-1);
 		}
-		
 		
 		String option = "";
 		do {
@@ -264,10 +284,12 @@ public class CPTheoryDominanceExperimentDriver {
 				} else {
 					OutputUtil.println("No.");
 				}
+			} catch (PreferenceReasonerException pe) {
+				OutputUtil.println("Error evaluating dominance: ");
+				pe.printStackTrace();
 			} catch (Exception e) {
 				OutputUtil.println("Error evaluating dominance: ");
 				e.printStackTrace();
-				OutputUtil.println("No.");
 			}
 			do {
 				more = readFromConsole("Continue with another dominance test? [Y/N] ");

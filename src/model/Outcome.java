@@ -7,8 +7,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.management.RuntimeErrorException;
-
 import util.OutputUtil;
 import exception.PreferenceReasonerException;
 
@@ -107,21 +105,22 @@ public class Outcome {
 		return false;
 	}
 	
-	public boolean validateOutcome() {
+	public boolean validateOutcome() throws PreferenceReasonerException {
 		Set<String> variableNames = new HashSet<String>(Arrays.asList(WorkingPreferenceModel.getPrefMetaData().getNamesOfVariables()));
 		boolean valid = false;
 		if(variableNames.equals(variableValuations.keySet())) {
 			valid = true;
 		} else {
-			OutputUtil.println("Variable names differ from those in preference specification");
+			OutputUtil.println("Variable names differ from those in preference specification, or not all variable valuations have been specified");
+			throw new PreferenceReasonerException("Variable names differ from those in preference specification, or not all variable valuations have been specified");
 		}
 		Set<PreferenceVariable> variables = WorkingPreferenceModel.getPrefMetaData().getVariables();
 		for(PreferenceVariable var : variables) {
 			String valForVar = variableValuations.get(var.getVariableName());
 			if(!var.getDomainValues().contains(valForVar)) {
 				valid = false;
-				OutputUtil.println("Variable valuation is outside domain of variable - "+var.getVariableName()+":"+valForVar+":"+var.getDomainValues());
-				break;
+				OutputUtil.println("Variable valuation provided is outside domain of variable - "+var.getVariableName()+":"+valForVar+" (Domain: "+var.getDomainValues()+")");
+				throw new PreferenceReasonerException("Variable valuation provided is outside domain of variable - "+var.getVariableName()+":"+valForVar+" (Domain: "+var.getDomainValues()+")");
 			}
 		}
 		return valid;

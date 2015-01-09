@@ -113,7 +113,7 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 			//Parse and return the cycle 
 			OutcomeSequence c = TraceFormatterFactory.createTraceFormatter().parseCycleFromTrace(WorkingPreferenceModel.getPrefMetaData());
 
-			System.out.print("Not consistent; Cycle found: ");
+			System.out.print("Cycle found: ");
 			c.printOutcomeSequence();
 			OutputUtil.println();
 		} else {
