@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import model.Outcome;
 import model.OutcomeSequence;
 import model.PreferenceMetaData;
+import model.QueryResult;
 import model.WorkingPreferenceModel;
 import util.Constants;
 import util.OutcomeFormatter;
@@ -106,8 +106,9 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 	 * This method is used for AAAI 2014 tutorial demo
 	 */
 	
-	public boolean dominates(Outcome betterAssignment, Outcome worseAssignment) throws Exception {
+	public QueryResult dominates(Outcome betterAssignment, Outcome worseAssignment) throws Exception {
 		boolean dominates = false;
+		OutcomeSequence proof = null;
 //		OutputUtil.println("Does " + betterAssignment + " dominate " + worseAssignment + "?");
 		if(betterAssignment.validateOutcome() && worseAssignment.validateOutcome()) {
 			//Don't need to compute anything if the outcomes are the same
@@ -115,7 +116,7 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 				if(Constants.LOG_OUTPUT) {
 					OutputUtil.println("Dominance does not hold");
 				}
-				return false;
+				return new QueryResult("NONAME", dominates, null, null);
 			}
 			
 			//Make a copy the original SMV file containing the model so that we can append specs for computing dominance 
@@ -158,13 +159,17 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 					//Model checker must return false, i.e., property is not verified 
 					ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
 					//Counter example provided by the model checker corresponds to the proof of dominance in the induced preference graph 
-					OutcomeSequence c = TraceFormatterFactory.createTraceFormatter().parsePathFromTrace(WorkingPreferenceModel.getPrefMetaData());
-					if(c.getOutcomeSequence().isEmpty()) {
+					proof = TraceFormatterFactory.createTraceFormatter().parsePathFromTrace(WorkingPreferenceModel.getPrefMetaData());
+					proof.printOutcomeSequence();
+					proof.fillInCarriedOverValuations();
+					proof.printOutcomeSequence();
+					if(proof.getOutcomeSequence().isEmpty()) {
 						throw new RuntimeException("Error computing dominance: see " + WorkingPreferenceModel.getPrefMetaData().getWorkingFile());
 					}
-					
-					System.out.print("Proof of dominance: ");
-					c.printOutcomeSequence();
+					if(Constants.LOG_OUTPUT) {
+						OutputUtil.println("Proof of dominance: ");
+						proof.printOutcomeSequence();
+					}
 				}
 			} else if (!dominates) {
 				if(Constants.LOG_OUTPUT) {
@@ -172,13 +177,15 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 				}
 			}
 		}
-		return dominates;
+		QueryResult q = new QueryResult("NONAME",dominates, proof, null);
+		q.writeQueryResultToFile(Constants.QUERY_FILE+"-"+Constants.BATCH_QUERY_INDEX+"-result.xml");
+		return q;
 	}
 
 	/* (non-Javadoc)
 	 * @see translate.PreferenceReasoner#isConsistent()
 	 */
-	public boolean isConsistent() throws Exception {
+	public QueryResult isConsistent() throws Exception {
 
 		//Append the spec corresponding to the existence of a cycle in the model (corresponds to a cycle in the induced preference graph)
 		List<String> appendix = new ArrayList<String>();
@@ -188,18 +195,21 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 		//Verify
 		ModelCheckingDelegate.verify(WorkingPreferenceModel.getPrefMetaData(), appendix, "consistency");
 		boolean consistent = ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
-		
+		OutcomeSequence proof = null;
 		if(!consistent) {
 			//Parse and return the cycle 
-			OutcomeSequence c = TraceFormatterFactory.createTraceFormatter().parsePathFromTrace(WorkingPreferenceModel.getPrefMetaData());
+			proof = TraceFormatterFactory.createTraceFormatter().parsePathFromTrace(WorkingPreferenceModel.getPrefMetaData());
 
-			System.out.print("Cycle found: ");
-			c.printOutcomeSequence();
+			System.out.print("Cycle found. ");
+			proof.fillInCarriedOverValuations();
+			proof.printOutcomeSequence();
 			OutputUtil.println();
 		} else {
 			OutputUtil.println("Consistent");
 		}
-		return consistent;
+		QueryResult q = new QueryResult("NONAME",consistent, proof, null);
+		q.writeQueryResultToFile(Constants.QUERY_FILE+"-result.xml");
+		return q;
 	}
 
 	/* (non-Javadoc)
@@ -370,7 +380,7 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 		return spec;
 	}
 	
-	private String getVerifyCandidateCycleSpec(Set<String> outcome) {
+	private String getVerifyCandidateCycleSpec(Set<String> outcome) throws PreferenceReasonerException {
 		Outcome o = new Outcome(WorkingPreferenceModel.getPrefMetaData().getVariables());
 		o.makeOutcome(outcome);
 		OutcomeSequence temp = new OutcomeSequence(o);
@@ -777,13 +787,15 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 				outcome2 = outcome2 + " & ";
 				readableOutcome2 = readableOutcome2 + ",";
 			}
-			
+			outcome1 = outcome1 + variable + "=" + worse.getValuationOfVariable(variable);
+			outcome2 = outcome2 + variable + "=" + better.getValuationOfVariable(variable);
+			/*
 			if(worse.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
 				//outcome1 is worse than outcome2
-				outcome1 = outcome1 + variables[j] + "=" + "1";
+				outcome1 = outcome1 + variable + "=" + "1";
 				readableOutcome1 = readableOutcome1 + variable;
 			} else {
-				outcome1 = outcome1 + variables[j] + "=" + "0";
+				outcome1 = outcome1 + variable + "=" + "0";
 			}
 
 			if(better.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
@@ -792,7 +804,7 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 				readableOutcome2 = readableOutcome2 + variable;
 			} else {
 				outcome2 = outcome2 + variables[j] + "=" + "0";
-			}
+			}*/
 		}
 		//CTL property specifying that there is a path from outcome1 to outcome 2 (outcome2 is better than outcome1) 	
 //		spec = SpecHelper.getCTLSpec("("+ outcome1 + " -> EX EF (" + outcome2 + ")) ","dominance","-- "+ " (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
@@ -828,21 +840,24 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 				readableOutcome2 = readableOutcome2 + ",";
 			}
 			
+			outcome1 = outcome1 + variable + "=" + worse.getValuationOfVariable(variable);
+			outcome2 = outcome2 + variable + "=" + better.getValuationOfVariable(variable);
+			/*
 			if(worse.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
 				//outcome1 is worse than outcome2
-				outcome1 = outcome1 + variables[j] + "=" + "1";
+				outcome1 = outcome1 + variable + "=" + "1";
 				readableOutcome1 = readableOutcome1 + variable;
 			} else {
-				outcome1 = outcome1 + variables[j] + "=" + "0";
+				outcome1 = outcome1 + variable + "=" + "0";
 			}
-			
+
 			if(better.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
 				//outcome2 is better than outcome1
 				outcome2 = outcome2 + variables[j] + "=" + "1";
 				readableOutcome2 = readableOutcome2 + variable;
 			} else {
 				outcome2 = outcome2 + variables[j] + "=" + "0";
-			}
+			}*/
 		}
 		//CTL property specifying that there is no path from outcome1 to outcome 2 (outcome2 is better than outcome1) 	
 //		spec = SpecHelper.getCTLSpec("(("+ outcome1 + " -> !EX EF (" + outcome2 + "))) ","counterExampleForDominanceTest"," (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");

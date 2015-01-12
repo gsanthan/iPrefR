@@ -11,6 +11,7 @@ import java.util.Set;
 import model.Outcome;
 import model.OutcomeSequence;
 import model.PreferenceMetaData;
+import model.QueryResult;
 import model.WorkingPreferenceModel;
 import util.Constants;
 import util.OutcomeFormatter;
@@ -42,14 +43,14 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 		super(smvFile);
 	}
 		
-	public boolean dominates(Outcome morePreferredOutcome, Outcome lessPreferredOutcome) throws Exception {
-		
+	public QueryResult dominates(Outcome morePreferredOutcome, Outcome lessPreferredOutcome) throws Exception {
+		OutcomeSequence proof = null;
 		OutputUtil.println("Does " + morePreferredOutcome + " dominate " + lessPreferredOutcome + "?");
 		
 		//Don't need to compute anything if the outcomes are the same
 		if(morePreferredOutcome.getOutcomeAsValuationMap().equals(lessPreferredOutcome.getOutcomeAsValuationMap())) {
 			OutputUtil.println("Dominance does not hold");
-			return false;
+			return new QueryResult("NONAME", false, null, null);
 		}
 		
 		//Make a copy the original SMV file containing the model so that we can append specs for computing dominance 
@@ -86,20 +87,21 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 			//Model checker must return false, i.e., property is not verified 
 			ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
 			//Counter example provided by the model checker corresponds to the proof of dominance in the induced preference graph 
-			OutcomeSequence c = TraceFormatterFactory.createTraceFormatter().parsePathFromTrace(WorkingPreferenceModel.getPrefMetaData());
+			proof = TraceFormatterFactory.createTraceFormatter().parsePathFromTrace(WorkingPreferenceModel.getPrefMetaData());
 			System.out.print("Proof of dominance: ");
-			c.printOutcomeSequence();
+			proof.printOutcomeSequence();
 		} else {
 			OutputUtil.println("Dominance does not hold");
 		}
-		return dominates;
+		return new QueryResult("NONAME", dominates, proof, null);
 	}
 	
 	/* (non-Javadoc)
 	 * @see translate.PreferenceReasoner#isConsistent()
 	 */
-	public boolean isConsistent() throws Exception {
+	public QueryResult isConsistent() throws Exception {
 
+		OutcomeSequence proof = null;
 		//Append the spec corresponding to the existence of a cycle in the model (corresponds to a cycle in the induced preference graph)
 		List<String> appendix = new ArrayList<String>();
 		String spec = getConsistencySpec();
@@ -111,15 +113,15 @@ public class AcyclicPreferenceReasoner extends PreferenceReasoner {
 		
 		if(!consistent) {
 			//Parse and return the cycle 
-			OutcomeSequence c = TraceFormatterFactory.createTraceFormatter().parseCycleFromTrace(WorkingPreferenceModel.getPrefMetaData());
+			proof = TraceFormatterFactory.createTraceFormatter().parseCycleFromTrace(WorkingPreferenceModel.getPrefMetaData());
 
 			System.out.print("Cycle found: ");
-			c.printOutcomeSequence();
+			proof.printOutcomeSequence();
 			OutputUtil.println();
 		} else {
 			OutputUtil.println("Consistent");
 		}
-		return consistent;
+		return new QueryResult("NONAME", consistent, proof, null);
 	}
 
 	/* (non-Javadoc)

@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import exception.PreferenceReasonerException;
 import model.OutcomeSequence;
 import model.PerformanceRecord;
 import model.PreferenceMetaData;
-
 import util.StringUtil;
 
 /**
@@ -24,7 +24,7 @@ public class CadenceSMVTraceFormatter implements TraceFormatter {
 	 * (non-Javadoc)
 	 * @see verify.TraceFormatter#parseCycleFromTrace(model.PreferenceMetaData)
 	 */
-	public OutcomeSequence parseCycleFromTrace(PreferenceMetaData pmd) throws FileNotFoundException, IOException {
+	public OutcomeSequence parseCycleFromTrace(PreferenceMetaData pmd) throws FileNotFoundException, IOException, PreferenceReasonerException {
 		BufferedReader reader = new BufferedReader(new FileReader(pmd.getCounterExampleFile()));
 		OutcomeSequence c = new OutcomeSequence();
 		String nextLine = null;
@@ -56,7 +56,7 @@ public class CadenceSMVTraceFormatter implements TraceFormatter {
 	 * (non-Javadoc)
 	 * @see verify.TraceFormatter#parsePathFromTrace(model.PreferenceMetaData)
 	 */
-	public OutcomeSequence parsePathFromTrace(PreferenceMetaData pmd) throws FileNotFoundException, IOException {
+	public OutcomeSequence parsePathFromTrace(PreferenceMetaData pmd) throws FileNotFoundException, IOException, PreferenceReasonerException {
 		BufferedReader reader = new BufferedReader(new FileReader(pmd.getCounterExampleFile()));
 		OutcomeSequence c = new OutcomeSequence();
 		String nextLine = null;

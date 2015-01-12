@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 
 import translate.CPTheoryToSMVTranslator;
+import model.PreferenceQuery.QueryType;
 import model.PreferenceSpecification;
 import model.Query;
 
@@ -24,7 +25,7 @@ public class Tester {
 		XStream xStream = new XStream();
 		xStream.autodetectAnnotations(true);
 		FileReader reader = new FileReader(xmlFile);
-		xStream.toXML(new Query()); // Don't know why, but fromXML throws Exception if we don't do toXML first!
+		xStream.toXML(new Query(null,null,null)); // Don't know why, but fromXML throws Exception if we don't do toXML first!
 		Query q = (Query) xStream.fromXML(reader);
 		return q;
 	}

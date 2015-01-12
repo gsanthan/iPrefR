@@ -1,5 +1,7 @@
-/generate/
 /model/
-/util/
+/generate/
 /reasoner/
 /test/
+/util/
+/verify/
+/translate/

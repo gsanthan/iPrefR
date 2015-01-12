@@ -132,6 +132,7 @@ public class CPTheoryToSMVTranslator implements PreferenceInputTranslator {
 		xStream.toXML(new PreferenceSpecification()); // Don't know why, but fromXML throws Exception if we don't do toXML first!
 		PreferenceSpecification ps = (PreferenceSpecification) xStream.fromXML(reader);
 		ps.makeValid();
+		ps.setPrefSpecFileName(xmlFile);
 		return ps;
 	}
 
@@ -214,25 +215,13 @@ public class CPTheoryToSMVTranslator implements PreferenceInputTranslator {
 					varLine = varLine + "boolean";	
 				} else {
 					varLine = varLine + "{";
-					for (Iterator<String> varDomainIterator = variableDomain.iterator(); varDomainIterator.hasNext();) {
-						String value = (String) varDomainIterator.next();
-						varLine = varLine + value;
-						if(varDomainIterator.hasNext()) {
-							varLine = varLine + ",";
-						}
-					}
+					varLine += getCommaSeparatedDomain(variableDomain);
 					varLine = varLine + "}";
 				}
 			} else {
 				//NuSMV -- use enumeration {0,1} even for binary domain
 				varLine = varLine + "{";
-				for (Iterator<String> varDomainIterator = variableDomain.iterator(); varDomainIterator.hasNext();) {
-					String value = (String) varDomainIterator.next();
-					varLine = varLine + value;
-					if(varDomainIterator.hasNext()) {
-						varLine = varLine + ",";
-					}
-				}
+				varLine += getCommaSeparatedDomain(variableDomain);
 				varLine = varLine + "}";
 			}
 			
@@ -259,13 +248,13 @@ public class CPTheoryToSMVTranslator implements PreferenceInputTranslator {
 			if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.NuSMV) {
 				FileUtil.writeLineToFile(w, "FROZENVAR");
 			}
-			writeAuxiliaryVariableDeclarations(w, new ArrayList<String>(ps.getVariableNames()), "", "_0", VAR_TYPE.COPY);
+			writeAuxiliaryVariableDeclarations(ps, w, new ArrayList<String>(ps.getVariableNames()), "", "_0", VAR_TYPE.COPY);
 			
 			//Aux. namesOfVariables indicating change of corresponding preference namesOfVariables in next state
 			if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.NuSMV) {
 				FileUtil.writeLineToFile(w, "IVAR");
 			}
-			writeAuxiliaryVariableDeclarations(w, new ArrayList<String>(ps.getVariableNames()), "ch", "", VAR_TYPE.CHANGE);
+			writeAuxiliaryVariableDeclarations(ps, w, new ArrayList<String>(ps.getVariableNames()), "ch", "", VAR_TYPE.CHANGE);
 			
 			FileUtil.writeLineToFile(w, "");
 			
@@ -307,7 +296,7 @@ public class CPTheoryToSMVTranslator implements PreferenceInputTranslator {
 			if(Constants.CURRENT_MODEL_CHECKER == Constants.MODEL_CHECKER.NuSMV) {
 				FileUtil.writeLineToFile(w, "IVAR");
 			}
-			writeAuxiliaryVariableDeclarations(w, new ArrayList<String>(ps.getVariableNames()), "ch", "", VAR_TYPE.CHANGE);
+			writeAuxiliaryVariableDeclarations(ps, w, new ArrayList<String>(ps.getVariableNames()), "ch", "", VAR_TYPE.CHANGE);
 			
 			FileUtil.writeLineToFile(w, "");
 		}
@@ -320,7 +309,31 @@ public class CPTheoryToSMVTranslator implements PreferenceInputTranslator {
 		//		List<String> copy = new ArrayList<String>(ps.getVariableNames());
 	}
 
-	private void writeAuxiliaryVariableDeclarations(BufferedWriter w, List<String> variableNames, String prefix, String suffix, VAR_TYPE type) throws IOException {
+	public String getCommaSeparatedDomain(Set<String> variableDomain) {
+		String s = "";
+		for (Iterator<String> varDomainIterator = variableDomain.iterator(); varDomainIterator.hasNext();) {
+			String value = (String) varDomainIterator.next();
+			s = s + value;
+			if(varDomainIterator.hasNext()) {
+				s = s + ",";
+			}
+		}
+		return s;
+	}
+
+	private String getCommaSeparatedDomainFromVarName(PreferenceSpecification ps, String variableName) {
+		String s = "";
+		for (PreferenceVariable prefVar : ps.getVariables()) {
+			String var = prefVar.getVariableName();
+			if(var.equals(variableName)) {
+				Set<String> variableDomain = prefVar.getDomainValues();
+				s = getCommaSeparatedDomain(variableDomain);
+			}
+		}
+		return s;
+	}
+	
+	private void writeAuxiliaryVariableDeclarations(PreferenceSpecification ps, BufferedWriter w, List<String> variableNames, String prefix, String suffix, VAR_TYPE type) throws IOException {
 		Iterator<String> iterator = variableNames.iterator();
 		// Create namesOfVariables that indicate change of value in the corresponding preference variable 
 		while (iterator.hasNext()) {
@@ -333,11 +346,17 @@ public class CPTheoryToSMVTranslator implements PreferenceInputTranslator {
 					varLine = "  " + prefix + variableName + suffix + " : " + "boolean;";
 				}
 			} else {
-				varLine = "  " + prefix + variableName + suffix + " : " + "{0,1};";
+				if(type == VAR_TYPE.COPY) {
+					varLine = "  " + prefix + variableName + suffix + " : " + "{"+getCommaSeparatedDomainFromVarName(ps,variableName)+"};";
+				} else {
+					varLine = "  " + prefix + variableName + suffix + " : " + "{0,1};";
+				}
 			}
 			FileUtil.writeLineToFile(w, varLine);
 		}
 	}
+
+
 
 	public void generateRandomSpec(PreferenceSpecification ps, String xmlFile, int sampleSize)
 			throws IOException {

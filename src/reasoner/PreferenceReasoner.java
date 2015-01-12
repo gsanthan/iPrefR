@@ -9,6 +9,7 @@ import java.util.Set;
 import model.Outcome;
 import model.OutcomeSequence;
 import model.PreferenceMetaData;
+import model.QueryResult;
 import model.WorkingPreferenceModel;
 import util.PerformanceAnalyzer;
 import exception.PreferenceReasonerException;
@@ -85,13 +86,13 @@ public abstract class PreferenceReasoner {
 	/**
 	 * Dominance Testing: Does morePreferredOutcome dominate lessPreferredOutcome? Returns true or false.
 	 * 
-	 * @param outcome
-	 * @param outcome2
+	 * @param betterOutcome
+	 * @param worseOutcome
 	 * @return Result of dominance testing: true or false
 	 * @throws Exception
 	 */
-	public abstract boolean dominates(Outcome outcome,
-			Outcome outcome2) throws Exception;
+	public abstract QueryResult dominates(Outcome betterOutcome,
+			Outcome worseOutcome) throws Exception;
 	
 	/**
 	 * Dominance Testing: Does morePreferredOutcome dominate lessPreferredOutcome? Returns true or false.
@@ -110,7 +111,7 @@ public abstract class PreferenceReasoner {
 	 * @return Result of consistency testing: true or false
 	 * @throws Exception
 	 */
-	public abstract boolean isConsistent() throws Exception;
+	public abstract QueryResult isConsistent() throws Exception;
 	
 	/**
 	 * Returns the next preferred outcome in a total ordering consistent with the induced preference graph.
@@ -216,8 +217,9 @@ public abstract class PreferenceReasoner {
 	 * @param outcomeSequence
 	 * @return Total number of outcomes generated so far
 	 * @throws IOException
+	 * @throws PreferenceReasonerException 
 	 */
-	public static int addOutcomeSequenceToGeneratedSequence(OutcomeSequence outcomeSequence) throws IOException {
+	public static int addOutcomeSequenceToGeneratedSequence(OutcomeSequence outcomeSequence) throws IOException, PreferenceReasonerException {
 		for(Outcome outcome : outcomeSequence.getOutcomeSequence()) {
 			outcomesInOrder.addOutcome(outcome);
 //			PerformanceAnalyzer.addLatestPerformanceRecord(outcome);
@@ -231,8 +233,9 @@ public abstract class PreferenceReasoner {
 	 * @param outcome
 	 * @return Total number of outcomes generated so far
 	 * @throws IOException
+	 * @throws PreferenceReasonerException 
 	 */
-	public static int addOutcomeToGeneratedSequence(Outcome outcome) throws IOException {
+	public static int addOutcomeToGeneratedSequence(Outcome outcome) throws IOException, PreferenceReasonerException {
 		outcomesInOrder.addOutcome(outcome);
 		PerformanceAnalyzer.addLatestPerformanceRecord(outcome);
 		return outcomesInOrder.getOutcomeSequence().size();

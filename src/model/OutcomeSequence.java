@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
+
+import exception.PreferenceReasonerException;
 import util.BinaryEncoding;
 import util.OutputUtil;
 
@@ -18,19 +22,19 @@ import util.OutputUtil;
  * @author gsanthan
  *
  */
+@XStreamAlias("OUTCOME-SEQUENCE")
 public class OutcomeSequence {
 	
 	/**
 	 * An ordered sequence of outcomes   
 	 */
+	@XStreamImplicit(itemFieldName="OUTCOME")
 	List<Outcome> outcomeSequence;
-//	Set<Set<String>> outcomeSequence;
 
 	/**
 	 * Initialize the OutcomeSequence with no outcomes
 	 */
 	public OutcomeSequence() {
-//		outcomeSequence = new LinkedHashSet<Set<String>>();
 		outcomeSequence = new ArrayList<Outcome>();
 	}
 
@@ -38,10 +42,7 @@ public class OutcomeSequence {
 	 * Initialize the OutcomeSequence with one outcome
 	 * @param outcome
 	 */
-//	public OutcomeSequence(Set<String> outcome) {
 	public OutcomeSequence(Outcome outcome) {
-//		outcomeSequence = new LinkedHashSet<Set<String>>();
-//		outcomeSequence.add(outcome);
 		outcomeSequence = new ArrayList<Outcome>();
 		outcomeSequence.add(outcome);
 	}
@@ -68,35 +69,34 @@ public class OutcomeSequence {
 	/**
 	 * Creates and returns a new OutcomeSequence object with the same set of outcomes as this 
 	 * @return Copy of this OutcomeSequence object
+	 * @throws PreferenceReasonerException 
 	 */
-	public OutcomeSequence getOutcomeSequenceCopy() {
+	public OutcomeSequence getOutcomeSequenceCopy() throws PreferenceReasonerException {
 		OutcomeSequence copy = new OutcomeSequence();
-//		for(Set<String> outcome : outcomeSequence) {
 		for(Outcome outcome : outcomeSequence) {
 			copy.addOutcome(outcome);
 		}
 		return copy;
 	}
 	
-	/*public Set<Set<String>> getOutcomeSequence() {
-		return outcomeSequence;
-	}*/
 	public List<Outcome> getOutcomeSequence() {
 		return outcomeSequence;
 	}
 	
-//	public void setOutcomeSequence(Set<Set<String>> outcomeSequence) {
 	public void setOutcomeSequence(List<Outcome> outcomeSequence) {
 		this.outcomeSequence = outcomeSequence;
 	}
 	
-	public void addOutcome(Set<String> outcome) {
+	public void addOutcome(Set<String> outcome) throws PreferenceReasonerException {
 		Outcome o = new Outcome(WorkingPreferenceModel.getPrefMetaData().getVariables());
 		o.makeOutcome(outcome);
 		addOutcome(o);
 	}
 	
-	public void addOutcome(Outcome outcome) {
+	public void addOutcome(Outcome outcome) throws PreferenceReasonerException {
+		if(outcome == null) {
+			throw new PreferenceReasonerException("Null outcome cannot be added to outcome sequence");
+		}
 		outcomeSequence.add(outcome);
 	}
 	
@@ -108,7 +108,7 @@ public class OutcomeSequence {
 		}
 	}
 	
-	public void addOutcomeSequence(List<Set<String>> outcomeSequence) {
+	public void addOutcomeSequence(List<Set<String>> outcomeSequence) throws PreferenceReasonerException {
 		for(Set<String> o : outcomeSequence) {
 			Outcome outcome = new Outcome(WorkingPreferenceModel.getPrefMetaData().getVariables());
 			outcome.makeOutcome(o);
@@ -120,13 +120,10 @@ public class OutcomeSequence {
 		this.outcomeSequence.addAll(outcomeSequence.getOutcomeSequence());
 	}
 	
-	/**
-	 * Prints the set of outcomes in this OutcomeSequence 
-	 */
-	public void printOutcomeSequence() {
-		System.out.print("Sequence (only variables whose assignments change in a flip are displayed): ");
+	public String getOutcomeSequenceAsString() {
+		String text = "Sequence (only variables whose assignments change in a flip are displayed): ";
 		if(outcomeSequence == null || outcomeSequence.size()==0) {
-			OutputUtil.println("Empty!");
+			text += "Empty!";
 		} else {
 			boolean first = true;
 			String s = new String();
@@ -135,8 +132,16 @@ public class OutcomeSequence {
 				s = s + o.getOutcomeAsSetOfStringAssignments();
 				first = false;
 			}
-			OutputUtil.println(s);
+			text += s;
 		}
+		return text;
+	}
+	
+	/**
+	 * Prints the set of outcomes in this OutcomeSequence 
+	 */
+	public void printOutcomeSequence() {
+		OutputUtil.println(getOutcomeSequenceAsString());
 	}
 	
 	/**
@@ -169,9 +174,19 @@ public class OutcomeSequence {
 				PrintStream out = new PrintStream(System.out, true, "UTF-8");
 				out.println(s);
 			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	public void fillInCarriedOverValuations() {
+		Outcome prev = null;
+		
+		for(Outcome o : outcomeSequence) {
+			if(prev != null) {
+				o.copyMissingValuationsFrom(prev);
+			}
+			prev = o;
 		}
 	}
 	

@@ -53,6 +53,10 @@ public class Outcome {
 		}
 	}
 	
+	public String getValuationOfVariable(String varName) {
+		return getOutcomeAsValuationMap().get(varName);
+	}
+	
 	public void makeOutcome(String[] variableNames) {
 		for(String vn : variableNames) {
 			for(Assignment a : assignments) { 
@@ -77,7 +81,7 @@ public class Outcome {
 		}
 	}
 	
-	private void assignVarToVal(String varName, String varValuation) {
+	public void assignVarToVal(String varName, String varValuation) {
 		for(Assignment a : assignments) {
 			if(a.getVariableName().equalsIgnoreCase(varName)) {
 				a.setVariableValuation(varValuation);
@@ -85,6 +89,19 @@ public class Outcome {
 		}
 	}
 
+	public void copyMissingValuationsFrom(Outcome o) {
+		for(Assignment ao : o.getAssignments()) {
+			for(Assignment a : assignments) {
+				if(a.getVariableName().equalsIgnoreCase(ao.variableName)) {
+					if(a.getVariableValuation() == null) {
+						a.setVariableValuation(ao.variableValuation);	
+					}
+				}
+			}
+		}
+	}
+
+	
 	private boolean isVariableAssigned(String varName) {
 		for(Assignment a : assignments) {
 			if(a.getVariableName().equalsIgnoreCase(varName)) {

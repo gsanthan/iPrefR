@@ -11,8 +11,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
 @XStreamAlias("PREFERENCE-SPECIFICATION")
 public class PreferenceSpecification {
 
-	@XStreamAlias("FILE-NAME")
-	String fileName;
+	String prefSpecFileName;
 	
 	@XStreamImplicit(itemFieldName="PREFERENCE-VARIABLE")
 	Set<PreferenceVariable> variables;
@@ -21,17 +20,16 @@ public class PreferenceSpecification {
 	Set<PreferenceStatement> statements;
 	
 	public PreferenceSpecification() {
-		fileName = "";
 		variables = new HashSet<PreferenceVariable>();
 		statements = new HashSet<PreferenceStatement>();
 	}
 
-	public String getFileName() {
-		return fileName;
+	public String getPrefSpecFileName() {
+		return prefSpecFileName;
 	}
 
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
+	public void setPrefSpecFileName(String prefSpecFileName) {
+		this.prefSpecFileName = prefSpecFileName;
 	}
 
 	public Set<PreferenceVariable> getVariables() {
