@@ -1,5 +1,6 @@
 package generate;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,13 +9,16 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import exception.PreferenceReasonerException;
-import model.DominanceTestPair;
 import model.Outcome;
+import model.PreferenceQuery.QueryType;
+import model.PreferenceSpecification;
 import model.PreferenceVariable;
+import model.Query;
 import util.Constants;
+import util.FileUtil;
 import util.OutputUtil;
 import util.StringUtil;
+import exception.PreferenceReasonerException;
 
 /**
  * Generates random specifications for experimental testing of sample preference specification   
@@ -24,7 +28,7 @@ import util.StringUtil;
 public class SpecGenerator {
 
 	public static void main(String[] args) throws PreferenceReasonerException {
-		SpecGenerator sg = new SpecGenerator();
+//		SpecGenerator sg = new SpecGenerator();
 		Set<String> d1 = new HashSet<String>();
 		d1.add("a");
 		d1.add("b");
@@ -40,11 +44,11 @@ public class SpecGenerator {
 		Set<PreferenceVariable> pv = new HashSet<PreferenceVariable>();
 		pv.add(v1);
 		pv.add(v2);
-	    OutputUtil.println(sg.createRandomDominanceTestSpecsSize(pv,3));
+	    /*OutputUtil.println(sg.createRandomDominanceTestSpecsSize(pv,3));
 	    OutputUtil.println();
 		for(int i=0; i<3; i++) {
 			OutputUtil.println(sg.createRandomDominanceTestInstance(pv));
-		}
+		}*/
 	}
 	
 	/**
@@ -136,21 +140,21 @@ public class SpecGenerator {
 	}
 	
 	
-	public List<DominanceTestPair> createRandomDominanceTestSpecsSize(Set<PreferenceVariable> prefVars, int sampleSize) throws PreferenceReasonerException {
+	public List<Query> createRandomDominanceTestSpecsSize(PreferenceSpecification prefSpec, int sampleSize) throws PreferenceReasonerException, IOException {
 		String[] specs = new String[sampleSize];
 		Random random = new Random(Constants.RANDOM_SEED);
-		List<DominanceTestPair> pairs = new ArrayList<DominanceTestPair>();
+		List<Query> queries = new ArrayList<Query>();
 		for(int i = 0; i < sampleSize; i++) {
 			String outcome1 = new String();
 			String outcome2 = new String();
 			String readableOutcome1 = new String();
 			String readableOutcome2 = new String();
-	        String ctr = StringUtil.padWithSpace(""+(i+1),7);
+//	        String ctr = StringUtil.padWithSpace(""+(i+1),7);
 	        
 	        Map<String, String> first = new HashMap<String, String>();
 			Map<String, String> second = new HashMap<String, String>();
 			
-			for(PreferenceVariable var : prefVars) {
+			for(PreferenceVariable var : prefSpec.getVariables()) {
 				List<String> domain = new ArrayList<String>(var.getDomainValues());
 				int r = random.nextInt(domain.size());
 				String randomValuation = domain.get(r);
@@ -174,14 +178,26 @@ public class SpecGenerator {
 				readableOutcome2 = readableOutcome2 + randomValuation;
 				second.put(var.getVariableName(), randomValuation);
 			}
-			DominanceTestPair instance = new DominanceTestPair(new Outcome(first), new Outcome(second));
-			pairs.add(instance);
-			specs[i] = "SPEC ("+ outcome1 + " -> EX EF (" + outcome2 + ")) -- "+ ctr + ". (" + readableOutcome1 + ") > (" + readableOutcome2 + ")";
-			OutputUtil.println(specs[i]);
 			
+			Set<Outcome> dominanceTestInstance = new HashSet<Outcome>();
+			Outcome betterOutcome = new Outcome(first);
+			betterOutcome.setLabel("BETTER");
+			Outcome worseOutcome = new Outcome(second);
+			worseOutcome.setLabel("WORSE");
+			dominanceTestInstance.add(betterOutcome);
+			dominanceTestInstance.add(worseOutcome);
+			Query q = new Query(QueryType.DOMINANCE,prefSpec.getPrefSpecFileName(),dominanceTestInstance);
+			queries.add(q);
+			
+			String[] words = new String[]{"QUERY", (i+1)+"   ", "("+outcome1+")", " -> EX EF ","("+outcome2+")" };
+			int[] padLengths = new int[]{7, 7, 50, 10, 50};
+//			specs[i] = "QUERY ("+ outcome1 + " -> EX EF (" + outcome2 + ")) -- "+ ctr + ". (" + readableOutcome1 + ") > (" + readableOutcome2 + ")";
+//			OutputUtil.println(specs[i]);
+			specs[i] = FileUtil.appendPaddedWordsAsLineToFile(prefSpec.getPrefSpecFileName()+"-"+sampleSize+"-queries.txt", words, padLengths);
+			OutputUtil.println(specs[i]);
 		}
 		
-		return pairs;
+		return queries;
 	}
 	
 	
@@ -212,6 +228,7 @@ public class SpecGenerator {
 		outcomePair.add(new Outcome(first));
 		outcomePair.add(new Outcome(second));
 		return outcomePair;
+		
 	}
 	
 }	

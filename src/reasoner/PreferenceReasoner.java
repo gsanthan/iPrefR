@@ -3,15 +3,12 @@ package reasoner;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import model.Outcome;
 import model.OutcomeSequence;
 import model.PreferenceMetaData;
 import model.QueryResult;
 import model.WorkingPreferenceModel;
-import util.PerformanceAnalyzer;
 import exception.PreferenceReasonerException;
 
 /**
@@ -237,7 +234,6 @@ public abstract class PreferenceReasoner {
 	 */
 	public static int addOutcomeToGeneratedSequence(Outcome outcome) throws IOException, PreferenceReasonerException {
 		outcomesInOrder.addOutcome(outcome);
-		PerformanceAnalyzer.addLatestPerformanceRecord(outcome);
 		return outcomesInOrder.getOutcomeSequence().size();
 	}
 	

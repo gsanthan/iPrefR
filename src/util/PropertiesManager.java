@@ -122,7 +122,7 @@ public class PropertiesManager {
 	}
 	
 	public static String[] getPropertiesAsParameterSet(Properties p) throws PreferenceReasonerException {
-		Iterator i = p.keySet().iterator();
+		Iterator<?> i = p.keySet().iterator();
 		List<String> params = new ArrayList<String>();
 		while (i.hasNext()) {
 			String key = (String) i.next();

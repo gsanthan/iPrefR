@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,7 +14,6 @@ import java.util.Set;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
-import model.DominanceTestPair;
 import model.Outcome;
 import model.PreferenceQuery;
 import model.PreferenceQuery.QueryType;
@@ -30,20 +27,12 @@ import reasoner.CyclicPreferenceReasoner;
 import reasoner.PreferenceQueryParser;
 import reasoner.PreferenceReasoner;
 import translate.CPTheoryToSMVTranslator;
-import translate.PreferenceInputTranslator;
-import translate.PreferenceInputTranslatorFactory;
-import translate.PreferenceLanguage;
 import util.Constants;
 import util.Constants.MODEL_CHECKER;
 import util.ExceptionUtil;
 import util.FileUtil;
 import util.OutputUtil;
-
-import com.google.common.base.Splitter;
-import com.thoughtworks.xstream.XStream;
-
 import exception.PreferenceReasonerException;
-import generate.CPTheoryGenerator;
 import generate.SpecGenerator;
 
 public class CPTheoryDominanceExperimentDriver {
@@ -52,12 +41,8 @@ public class CPTheoryDominanceExperimentDriver {
 	public enum REASONING_TASK {DOMINANCE,CONSISTENCY,ORDERING};
 	
 	public static void main(String[] args) throws Exception {
-		/*OutputUtil.println(PropertiesManager.class.getClass().getResourceAsStream("/runtime.properties"));
-		InputStream is = PropertiesManager.class.getClass().getResourceAsStream(Constants.CONFIG_RUNTIME_PROPERTIES);
-		PropertiesManager.runtimeProperties.load(is);*/
+
 		CPTheoryDominanceExperimentDriver d = new CPTheoryDominanceExperimentDriver();
-//		d.testDominance();
-//		d.dominanceTester();
 		d.serveInitialMenu();
 	}
 	
@@ -72,8 +57,6 @@ public class CPTheoryDominanceExperimentDriver {
 			e.printStackTrace();
 		}
 		return line;
-//		Scanner sc = new Scanner(System.in);
-//		return sc.nextLine();
 	}
 	
 	
@@ -259,10 +242,10 @@ public class CPTheoryDominanceExperimentDriver {
 		} while (more.equalsIgnoreCase("y"));
 	}
 
-	public void executeDominanceTest(PreferenceReasoner reasoner, Query query) {
+	public QueryResult executeDominanceTest(PreferenceReasoner reasoner, Query query) {
 		Outcome betterOutcome = null;
 		Outcome worseOutcome = null;
-
+		QueryResult result = null;
 		try {
 			Constants.OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT = true;
 			for(Outcome o : query.getOutcomes()) {
@@ -273,7 +256,7 @@ public class CPTheoryDominanceExperimentDriver {
 					worseOutcome = o;
 				}
 			}
-			QueryResult result = reasoner.dominates(betterOutcome, worseOutcome);
+			 result = reasoner.dominates(betterOutcome, worseOutcome);
 			OutputUtil.println(result.getQueryResultAsText());
 		} catch (PreferenceReasonerException pe) {
 			OutputUtil.println("Error evaluating dominance: ");
@@ -284,42 +267,10 @@ public class CPTheoryDominanceExperimentDriver {
 			e.printStackTrace();
 			System.out.println(ExceptionUtil.getStackTraceAsString(e));
 		}
+		
+		return result;
 	}
 	
-	public void nextPreferredTester(PreferenceReasoner reasoner, PreferenceSpecification prefSpec) throws Exception {
-		
-		int numOutcomes = 1;
-		/*do {
-			numOutcomes = 0;
-			String nSpecs = readFromConsole("Enter number of alternatives to compute: ");
-			try {
-				numOutcomes = Integer.parseInt(nSpecs);
-			} catch (NumberFormatException e) {
-				OutputUtil.println("Incorrect number format. Enter an integer > 0.");
-				numOutcomes = 0;
-			}
-		} while (!(numOutcomes > 0));*/
-		
-		SpecGenerator specGen = new SpecGenerator();
-		Constants.NUM_OUTCOMES = numOutcomes;
-		
-//		long totalTime = 0;
-//		for(int specIndex=0; specIndex<numOutcomes; specIndex++) {
-//			List<Map<String, String>> instance = specGen.createRandomDominanceTestInstance(prefSpec.getVariables());
-			long timer = System.currentTimeMillis();
-			reasoner.generateWeakOrderWithCycles();
-			long fullTime = (System.currentTimeMillis() - timer);
-//			totalTime += fullTime;
-//			String[] words = new String[]{"Alternative ", (specIndex+1)+"   ", result+"", fullTime+"   ", "ms"};
-//			int[] padLengths = new int[]{7, 7, 10, 10, 3};
-//			String resultString = FileUtil.appendPaddedWordsAsLineToFile(reasoner.smvFile+"-"+numOutcomes+"alternatives.txt", words, padLengths);
-//			OutputUtil.println(resultString);
-			OutputUtil.println();
-			OutputUtil.println("Total time: " + fullTime + " ms");
-//		}	
-		
-	}
-
 	public void dominancePerformanceTester(PreferenceReasoner reasoner, PreferenceSpecification prefSpec) throws Exception {
 		String dominanceProof = readFromConsole("Compute proof of dominance? (Y/N) ");
 		Constants.OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT = dominanceProof.trim().equalsIgnoreCase("Y")?true:false;
@@ -339,18 +290,17 @@ public class CPTheoryDominanceExperimentDriver {
 		SpecGenerator specGen = new SpecGenerator();
 		Constants.NUM_SPECS = numSpecs;
 		long totalTime = 0;
-		List<DominanceTestPair> instances = specGen.createRandomDominanceTestSpecsSize(prefSpec.getVariables(), numSpecs);
+		List<Query> queries = specGen.createRandomDominanceTestSpecsSize(prefSpec, numSpecs);
 		int specIndex = 0;
-		for(DominanceTestPair instance : instances) {
+		for(Query query : queries) {
 			long timer = System.currentTimeMillis();
-//			OutputUtil.println(instance.getFirst() +""+instance.getSecond());
 			Constants.BATCH_QUERY_INDEX = specIndex + 1;
-			QueryResult result = reasoner.dominates(instance.getFirst(), instance.getSecond());
+			QueryResult result = executeDominanceTest(reasoner, query);
 			long fullTime = (System.currentTimeMillis() - timer);
 			totalTime += fullTime;
-			String[] words = new String[]{"SPEC ", (specIndex+1)+"   ", result.getResult()+"", fullTime+"   ", "ms"};
+			String[] words = new String[]{"QUERY ", (specIndex+1)+"   ", result.getResult()+"", fullTime+"   ", "ms"};
 			int[] padLengths = new int[]{7, 7, 10, 10, 3};
-			String resultString = FileUtil.appendPaddedWordsAsLineToFile(reasoner.smvFile+"-"+numSpecs+"specs.txt", words, padLengths);
+			String resultString = FileUtil.appendPaddedWordsAsLineToFile(prefSpec.getPrefSpecFileName()+"-"+numSpecs+"-queryresults.txt", words, padLengths);
 			OutputUtil.println(resultString);
 			specIndex++;
 		}	
@@ -359,151 +309,38 @@ public class CPTheoryDominanceExperimentDriver {
 		OutputUtil.println("Average time per dominance test: " + (totalTime/numSpecs) + " ms");
 	}
 	
-	public void testDominance() throws Exception {
+	public void nextPreferredTester(PreferenceReasoner reasoner, PreferenceSpecification prefSpec) throws Exception {
 		
-//		String path = "D:\\Ganesh\\Research\\WIP\\JAIR2013\\example\\cptheory-gen\\";
-//		Constants.FOLDER = path;
-//		String path = Constants.FOLDER;
-		
-		ExperimentConfigurator.configureExperiment();
-		PreferenceLanguage l = PreferenceLanguage.CPTheory;
-		Date d = new Date();
-		String date = new java.text.SimpleDateFormat("yyyy-MM-dd'_'HH-mm-ss").format(new java.util.Date());
-		String resultFile = Constants.FOLDER+File.separator+"result-"+(Constants.CURRENT_MODEL_CHECKER==Constants.MODEL_CHECKER.NuSMV?"n":"c")+"_"+date+".txt";
-		Constants.RESULT_FILE = resultFile;
-//		String logFile=path+"cinet-generation-testing-log.txt";
-		int domainSize = 2;
-		List<String> parameters = new ArrayList<String>();
-		parameters.add("Model Checker : " + Constants.CURRENT_MODEL_CHECKER);
-		parameters.add("Model Checker Command : " + Constants.SMV_EXEC_COMMAND);
-		parameters.add(Constants.CURRENT_MODEL_CHECKER.toString());
-		parameters.add("Preference Language : " + l);
-		parameters.add("#Variables : " + Constants.MIN_VAR_SIZE + " to " + Constants.MAX_VAR_SIZE + " increment by " + Constants.VAR_SIZE_INCREMENT);
-		parameters.add("#Statments : " + Constants.MIN_CPT_SIZE + " to " + Constants.MAX_CPT_SIZE + " increment by " + Constants.CPT_SIZE_INCREMENT);
-		parameters.add("Are # Statements specified per variable ? " + Constants.IS_CPT_PER_VAR);
-		parameters.add("Preference Spec File Location : " + Constants.FOLDER);
-		parameters.add("#Pref Spec Files : " + Constants.NUM_PREF_FILES);
-		parameters.add("#Pref Specs : " + Constants.NUM_SPECS);
-		parameters.add("Intravariable Preference Total Order ? " + Constants.INTRAVAR_TOTALORDER);
-		parameters.add("Obtain proof of dominance by default ? " + Constants.OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT);
-		parameters.add("Result File Name : " + Constants.RESULT_FILE);
-		
-		FileUtil.appendLineToFile(resultFile, "--------------------Parameters----------------------");
-		for(String p : parameters) {
-			FileUtil.appendLineToFile(resultFile, p);
-			OutputUtil.println(p);
-		}
-		FileUtil.appendLineToFile(resultFile, "----------------------------------------------------");
-		
-		for(int numVariables=Constants.MIN_VAR_SIZE; numVariables<=Constants.MAX_VAR_SIZE; numVariables+=Constants.VAR_SIZE_INCREMENT) {
-//			String resultFile = Constants.RESULT_FILE + ".vs" + vs;
-			for(int numStatements=Constants.MIN_CPT_SIZE; numStatements<=Constants.MAX_CPT_SIZE; numStatements+=Constants.CPT_SIZE_INCREMENT) {
-				for (int numIndex = 0; numIndex < Constants.NUM_PREF_FILES; numIndex++) {
-		//			int numVariables = MathUtil.getRandomInteger(7,10,Constants.random);
-		//			int numStatements = MathUtil.getRandomInteger(8,14,Constants.random);
-//					OutputUtil.println(numVariables+","+numStatements);
-//					FileUtil.appendLineToFile(logFile,numVariables+","+numStatements);
-					
-					String cptheoryFile = Constants.FOLDER+l.toString().toLowerCase()+"--vs"+numVariables+"-ss"+numStatements+"-"+(numIndex+1)+".txt";
-					String xmlFile = Constants.FOLDER+l.toString().toLowerCase()+"--vs"+numVariables+"-ss"+numStatements+"-"+(numIndex+1)+".xml";
-					
-					CPTheoryGenerator cptGen = new CPTheoryGenerator();
-				
-					PreferenceSpecification prefSpec = cptGen.generateCPTheory(numVariables, domainSize, numStatements, Constants.IS_CPT_PER_VAR, l);
-					writePrefSpecToFile(xmlFile, prefSpec);
-					
-					PreferenceInputTranslator translator = PreferenceInputTranslatorFactory.createTranslator(PreferenceLanguage.CPTheory);
-					String smvFile = translator.convertToSMV(xmlFile, REASONING_TASK.DOMINANCE, 0);
-					
-					PreferenceReasoner p = new CyclicPreferenceReasoner(smvFile);
-					
-					SpecGenerator specGen = new SpecGenerator();
-					for(int specIndex=0; specIndex<Constants.NUM_SPECS; specIndex++) {
-						
-						List<Outcome> outcomePair = specGen.createRandomDominanceTestInstance(prefSpec.getVariables());
-						
-						long timer = System.currentTimeMillis();
-						QueryResult result = p.dominates(outcomePair.get(0), outcomePair.get(1));
-						String fullTime = (System.currentTimeMillis() - timer)+"";
-						
-						String[] words = new String[]{"Vars " , numVariables+"","Stmts " , numStatements+"   ", "File ", (numIndex+1)+"   ", "SPEC ", (specIndex+1)+"   ", result.getResult()+"", fullTime+"   ", "ms", "  ",  (specIndex==0?xmlFile:"-")};
-						int[] padLengths = new int[]{7, 7, 7, 7, 7, 7, 7, 7, 10, 10, 3, 4, 75};
-						String resultString = FileUtil.appendPaddedWordsAsLineToFile(resultFile, words, padLengths);
-						OutputUtil.println(resultString);
-						
-					}	
-					
-						/*long timer = System.currentTimeMillis();
-						
-						boolean result = p.dominates(outcome1, outcome2);
-						
-						String fullTime = (System.currentTimeMillis() - timer)+"";
-						String bddCount = StringUtil.padWithSpace(ModelCheckingDelegate.findBDDUsageStats(pmd),13);
-						String userTime = StringUtil.padWithSpace(ModelCheckingDelegate.findUserRuntimeStats(pmd),13);
-						String systemTime = StringUtil.padWithSpace(ModelCheckingDelegate.findSystemtimeUsageStats(pmd),13);
-						DecimalFormat decim = new DecimalFormat("0.000");
-						String totalTime = StringUtil.padWithSpace((decim.format(Double.parseDouble(userTime) + Double.parseDouble(systemTime)))+"",13);
-						String memory = StringUtil.padWithSpace(ModelCheckingDelegate.findMemoryUsageStats(pmd),13);
-						
-						String[] words = new String[]{"vs " , vs+"","cs " , cs+"", "ms " ,""+ maxDegree, "File ", ""+ (j+1)+"", "SPEC ", c+"", result+"", fullTime, "ms", userTime, systemTime, totalTime, memory, bddCount, "  "+pmd.getSmvFile()+"  ", dominanceInstance };
-						int[] padLengths = new int[]{3, 4, 3, 4, 3, 4, 4, 4, 5, 5, 10, 12, 3, 7, 7, 7, 10, 10, 25, 225};
-						
-						String resultString = FileUtil.appendPaddedWordsAsLineToFile(resultFile, words, padLengths);
-						OutputUtil.println(resultString);
-//						ModelCheckingDelegate.deleteFiles(pmd);
-*/				}
-//				deleteFilesExceptXML(Constants.FOLDER, resultFile);
+		int numOutcomes = 1;
+		/*do {
+			numOutcomes = 0;
+			String nSpecs = readFromConsole("Enter number of alternatives to compute: ");
+			try {
+				numOutcomes = Integer.parseInt(nSpecs);
+			} catch (NumberFormatException e) {
+				OutputUtil.println("Incorrect number format. Enter an integer > 0.");
+				numOutcomes = 0;
 			}
-//			deleteFiles(Constants.FOLDER, resultFile);
-		}
+		} while (!(numOutcomes > 0));*/
+		
+//		SpecGenerator specGen = new SpecGenerator();
+		Constants.NUM_OUTCOMES = numOutcomes;
+		
+//		long totalTime = 0;
+//		for(int specIndex=0; specIndex<numOutcomes; specIndex++) {
+//			List<Map<String, String>> instance = specGen.createRandomDominanceTestInstance(prefSpec.getVariables());
+			long timer = System.currentTimeMillis();
+			reasoner.generateWeakOrderWithCycles();
+			long fullTime = (System.currentTimeMillis() - timer);
+//			totalTime += fullTime;
+//			String[] words = new String[]{"Alternative ", (specIndex+1)+"   ", result+"", fullTime+"   ", "ms"};
+//			int[] padLengths = new int[]{7, 7, 10, 10, 3};
+//			String resultString = FileUtil.appendPaddedWordsAsLineToFile(reasoner.smvFile+"-"+numOutcomes+"alternatives.txt", words, padLengths);
+//			OutputUtil.println(resultString);
+			OutputUtil.println();
+			OutputUtil.println("Total time: " + fullTime + " ms");
+//		}	
+		
 	}
-	
 
-	public static void writePrefSpecToFile(String xmlFile, PreferenceSpecification prefSpec) throws IOException {
-		XStream xStream = new XStream();
-		xStream.autodetectAnnotations(true);
-		String xml = xStream.toXML(prefSpec);
-		Iterable<String> xmlLines = Splitter.onPattern("\r?\n")
-			       .trimResults()
-			       .omitEmptyStrings()
-			       .split(xml);
-		FileUtil.deleteFileIfExists(xmlFile);
-		for(String line : xmlLines) {
-			FileUtil.appendLineToFile(xmlFile, line);						
-		}
-	}
-	
-/*	private static void deleteFiles(String folder, String resultFile) {
-		File dir = new File(folder);
-//		OutputUtil.println(FOLDER);
-		File[] listOfFiles = dir.listFiles();
-		OutputUtil.println("Deleting "+listOfFiles.length+" files in "+folder);
-		if(listOfFiles != null) {
-			for (int i = 0; i < listOfFiles.length; i++) {
-				if (!(resultFile.equalsIgnoreCase(listOfFiles[i].getAbsolutePath())) && !(listOfFiles[i].getName().contains(Constants.RESULT_PREFIX))) {
-//					  if(!(listOfFiles[i].getName().endsWith(".xml")) && !(listOfFiles[i].getName().endsWith(".jar"))) {
-					if(!(listOfFiles[i].getName().endsWith(".jar"))) {
-						  listOfFiles[i].delete();
-					  }
-				}
-			}
-		}
-	}*/
-	
-	/*private static void deleteFilesExceptXML(String folder, String resultFile) {
-		File dir = new File(folder);
-//		OutputUtil.println(FOLDER);
-		File[] listOfFiles = dir.listFiles();
-		OutputUtil.println("Deleting "+listOfFiles.length+" files in "+folder);
-		if(listOfFiles != null) {
-			for (int i = 0; i < listOfFiles.length; i++) {
-				if (!(resultFile.equalsIgnoreCase(listOfFiles[i].getAbsolutePath())) && !(listOfFiles[i].getName().contains("results"))) {
-//					  if(!(listOfFiles[i].getName().endsWith(".xml")) && !(listOfFiles[i].getName().endsWith(".jar"))) {
-					if(!(listOfFiles[i].getName().endsWith(".jar")) && !(listOfFiles[i].getName().endsWith(".xml"))) {
-						  listOfFiles[i].delete();
-					  }
-				}
-			}
-		}
-	}*/
 }

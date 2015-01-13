@@ -15,11 +15,9 @@ public class PreferenceInputTranslatorFactory {
 	 * @return A PreferenceInputTranslator implementation
 	 */
 	public static PreferenceInputTranslator createTranslator(PreferenceLanguage type) {
-		if(type == PreferenceLanguage.CInet) {
+		/*if(type == PreferenceLanguage.CInet) {
 			return (PreferenceInputTranslator)new CINetToSMVTranslator();
-		} else if(type == PreferenceLanguage.TCPnet) {
-			return (PreferenceInputTranslator)new TCPNetToSMVTranslator();
-		} else if(type == PreferenceLanguage.CPTheory) {
+		} else */if(type == PreferenceLanguage.CPTheory || type == PreferenceLanguage.TCPnet || type == PreferenceLanguage.CPnet) {
 			return (PreferenceInputTranslator)new CPTheoryToSMVTranslator();
 		} else {
 			throw new RuntimeException("Preference Input type not supported!");

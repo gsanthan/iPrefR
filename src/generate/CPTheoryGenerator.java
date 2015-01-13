@@ -11,11 +11,6 @@ import java.util.Set;
 import model.PreferenceSpecification;
 import model.PreferenceStatement;
 import model.PreferenceVariable;
-import reasoner.CyclicPreferenceReasoner;
-import reasoner.PreferenceReasoner;
-import test.CPTheoryDominanceExperimentDriver.REASONING_TASK;
-import translate.PreferenceInputTranslator;
-import translate.PreferenceInputTranslatorFactory;
 import translate.PreferenceLanguage;
 import util.Constants;
 import util.FileUtil;
@@ -31,7 +26,7 @@ public class CPTheoryGenerator {
 		String path = "D:\\Ganesh\\Research\\WIP\\JAIR2013\\example\\cptheory-gen\\";
 //		String logFile=path+"cinet-generation-testing-log.txt";
 		int domainSize = 3;
-		int sampleSize = 5;
+		
 		for(int numVariables=10; numVariables<15; numVariables++) {
 			for(int numStatements=numVariables/2; numStatements<(2*numVariables+1); numStatements*=2) {
 				for(int i=0;i<5;i++) {
@@ -48,12 +43,12 @@ public class CPTheoryGenerator {
 					PreferenceSpecification prefSpec = cptGen.generateCPTheory(numVariables, domainSize, numStatements, true, PreferenceLanguage.CPTheory);
 					writePrefSpecToFile(xmlFile, prefSpec);
 					
+					/*
+					int sampleSize = 5;
 					PreferenceInputTranslator translator = PreferenceInputTranslatorFactory.createTranslator(PreferenceLanguage.CPTheory);
 					String smvFile = translator.convertToSMV(xmlFile, REASONING_TASK.DOMINANCE, sampleSize);
 					
-					PreferenceReasoner p = new CyclicPreferenceReasoner(smvFile);
-					
-					/*p.dominates(morePreferredOutcome, lessPreferredOutcome)
+					p.dominates(morePreferredOutcome, lessPreferredOutcome)
 					
 					for(int j=0;j<10;j++) {
 						timer = System.currentTimeMillis();
@@ -80,11 +75,11 @@ public class CPTheoryGenerator {
 		}
 	}
 
-	private Set<String> getRandomVariableSubset(List<String> variables) {
+	/*private Set<String> getRandomVariableSubset(List<String> variables) {
 		Collections.shuffle(variables);
 		List<String> subset = variables.subList(0, Constants.random.nextInt(variables.size()));
 		return new HashSet<String>(subset);
-	}
+	}*/
 	
 	public PreferenceSpecification generateCPTheory(int numVariables, int domainSize, int numStatements, boolean numStatementsIsPerVariable, PreferenceLanguage language)
 			throws IOException {
@@ -158,7 +153,7 @@ public class CPTheoryGenerator {
 //		String prefVar = variableNames.get(0);
 		variableNames.remove(prefVar);
 		
-		int fixed=0,lessImp=0,parents=0;
+		int lessImp=0;
 		
 		if(language == PreferenceLanguage.CPTheory) {
 			for(String v : variableNames) {

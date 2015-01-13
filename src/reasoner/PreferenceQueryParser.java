@@ -23,6 +23,7 @@ public class PreferenceQueryParser {
 			Query q = (Query) xStream.fromXML(reader);
 			return q; 
 		} catch(Exception e) {
+			e.printStackTrace();
 			throw new PreferenceReasonerException("Error parsing query file.");
 		}
 	}

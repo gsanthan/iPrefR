@@ -186,6 +186,7 @@ public class ModelChecker {
 				FileUtil.appendLineToFile(currentSmvFile, nextLine);
 			}
 		}
+		reader.close();
 		return smvFiles.toArray(new String[0]);
 	}
 	

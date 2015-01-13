@@ -121,7 +121,7 @@ public class OutcomeSequence {
 	}
 	
 	public String getOutcomeSequenceAsString() {
-		String text = "Sequence (only variables whose assignments change in a flip are displayed): ";
+		String text = "Sequence: ";
 		if(outcomeSequence == null || outcomeSequence.size()==0) {
 			text += "Empty!";
 		} else {

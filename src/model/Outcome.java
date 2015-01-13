@@ -41,6 +41,7 @@ public class Outcome {
 		}
 	}
 	
+	
 	public Outcome(Set<String> variableNames) {
 		for(String vn : variableNames) {
 			for(Assignment a : assignments) { 
