@@ -1,8 +1,0 @@
-VARIABLES
-a,b,c,d
-PREFERENCES
-{d};{}:{b};{c}
-{b};{a}:{c};{d}
-{};{a}:{b,d};{c}
-{a};{c}:{b};{d}
-{};{c}:{a,d};{b}
