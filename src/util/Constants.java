@@ -185,5 +185,4 @@ public class Constants {
 	public static String RESULT_PREFIX = "result--";
 	
 	public static String QUERY_FILE = "";
-	public static int BATCH_QUERY_INDEX = 1;
 }

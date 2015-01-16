@@ -46,62 +46,6 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 		super(smvFile, smvFileReverse);
 	}
 	
-	/* (non-Javadoc)
-	 * @see translate.PreferenceReasoner#dominates(java.lang.String[], java.lang.String[])
-	 */
-	/*public boolean dominates(Set<String> morePreferredOutcome, Set<String>  lessPreferredOutcome) throws Exception {
-		
-		OutputUtil.println("Does " + morePreferredOutcome + " dominate " + lessPreferredOutcome + "?");
-		
-		//Don't need to compute anything if the outcomes are the same
-		if(morePreferredOutcome.equals(lessPreferredOutcome)) {
-			OutputUtil.println("Dominance does not hold");
-			return false;
-		}
-		
-		//Make a copy the original SMV file containing the model so that we can append specs for computing dominance 
-		PreferenceMetaData pmd = new PreferenceMetaData(smvFile);
-		pmd.setWorkingFile(smvFile+"-copy-dominance.smv");
-		
-		//Append the spec corresponding to the existence of a path from less preferred to more preferred outcome in the induced preference graph
-		List<String> appendix = new ArrayList<String>();
-		String spec = getDominanceSpec(lessPreferredOutcome,morePreferredOutcome);
-		appendix.add(spec);
-		
-		//Verify
-		ModelCheckingDelegate.verify(WorkingPreferenceModel.getPrefMetaData(), appendix, "dominates");
-		boolean dominates = ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
-		
-		if(dominates) {
-			
-			//Return the proof of dominance: a path from the less preferred to the more preferred outcome
-			appendix.clear();
-			//Negate the spec used to test dominance, so that the model checker can provide the proof of dominance
-			spec = getNegatedDominanceSpec(lessPreferredOutcome,morePreferredOutcome);
-			
-			//Set the less preferred outcome as the initial state; 
-			//the model checker need only search for a path to the more preferred outcome  
-			String initSpec = SpecHelper.getInitOutcomeSpec(lessPreferredOutcome);
-			
-			//Append the initial state contraints and the property to be verified to the model 
-			appendix.add(initSpec);
-			
-			appendix.add(spec);
-			
-			//Verify 
-			ModelCheckingDelegate.verify(WorkingPreferenceModel.getPrefMetaData(), appendix, "counterToDominates");
-			//Model checker must return false, i.e., property is not verified 
-			ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
-			//Counter example provided by the model checker corresponds to the proof of dominance in the induced preference graph 
-			OutcomeSequence c = TraceFormatterFactory.createTraceFormatter().parsePathFromTrace(WorkingPreferenceModel.getPrefMetaData());
-			System.out.print("Proof of dominance: ");
-			c.printOutcomeSequence();
-		} else {
-			OutputUtil.println("Dominance does not hold");
-		}
-		return dominates;
-	}*/
-	
 	/**
 	 * This method is used for AAAI 2014 tutorial demo
 	 */
@@ -109,14 +53,13 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 	public QueryResult dominates(Outcome betterAssignment, Outcome worseAssignment) throws Exception {
 		boolean dominates = false;
 		OutcomeSequence proof = null;
-//		OutputUtil.println("Does " + betterAssignment + " dominate " + worseAssignment + "?");
 		if(betterAssignment.validateOutcome() && worseAssignment.validateOutcome()) {
 			//Don't need to compute anything if the outcomes are the same
 			if(betterAssignment.equals(worseAssignment)) {
 				if(Constants.LOG_OUTPUT) {
-					OutputUtil.println("Dominance does not hold");
+					OutputUtil.println("Dominance does not hold as the outcomes are equal");
 				}
-				return new QueryResult("NONAME", dominates, null, null);
+				return new QueryResult(null, dominates, null, null);
 			}
 			
 			//Make a copy the original SMV file containing the model so that we can append specs for computing dominance 
@@ -134,7 +77,6 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 			//Verify
 			ModelCheckingDelegate.verify(WorkingPreferenceModel.getPrefMetaData(), appendix, "dominates");
 			dominates = ModelCheckingDelegate.findVerificationResult(WorkingPreferenceModel.getPrefMetaData());
-	//		OutputUtil.println("Result: " + dominates);
 			if(dominates ) {
 				if(Constants.LOG_OUTPUT) {
 					OutputUtil.println("Dominance holds.");
@@ -177,8 +119,8 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 				}
 			}
 		}
-		QueryResult q = new QueryResult("NONAME",dominates, proof, null);
-		q.writeQueryResultToFile(Constants.QUERY_FILE+"-"+Constants.BATCH_QUERY_INDEX+"-result.xml");
+		QueryResult q = new QueryResult(null,dominates, proof, null);
+		
 		return q;
 	}
 
@@ -207,8 +149,7 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 		} else {
 			OutputUtil.println("Consistent");
 		}
-		QueryResult q = new QueryResult("NONAME",consistent, proof, null);
-		q.writeQueryResultToFile(Constants.QUERY_FILE+"-result.xml");
+		QueryResult q = new QueryResult(null,consistent, proof, null);
 		return q;
 	}
 
@@ -789,26 +730,10 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 			}
 			outcome1 = outcome1 + variable + "=" + worse.getValuationOfVariable(variable);
 			outcome2 = outcome2 + variable + "=" + better.getValuationOfVariable(variable);
-			/*
-			if(worse.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
-				//outcome1 is worse than outcome2
-				outcome1 = outcome1 + variable + "=" + "1";
-				readableOutcome1 = readableOutcome1 + variable;
-			} else {
-				outcome1 = outcome1 + variable + "=" + "0";
-			}
-
-			if(better.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
-				//outcome2 is better than outcome1
-				outcome2 = outcome2 + variables[j] + "=" + "1";
-				readableOutcome2 = readableOutcome2 + variable;
-			} else {
-				outcome2 = outcome2 + variables[j] + "=" + "0";
-			}*/
+			
 		}
 		//CTL property specifying that there is a path from outcome1 to outcome 2 (outcome2 is better than outcome1) 	
-//		spec = SpecHelper.getCTLSpec("("+ outcome1 + " -> EX EF (" + outcome2 + ")) ","dominance","-- "+ " (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
-		spec = SpecHelper.getCTLSpec("("+ outcome1 /*+ " & " + SpecHelper.getInitChangeVariablesCondition()*/ + " -> EX EF (" + outcome2 + ")) ","dominance","-- "+ " (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
+		spec = SpecHelper.getCTLSpec("("+ outcome1 + " -> EX EF (" + outcome2 + ")) ","dominance","-- "+ " (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
 		
 		return spec;
 	}
@@ -842,26 +767,10 @@ public class CyclicPreferenceReasoner extends PreferenceReasoner {
 			
 			outcome1 = outcome1 + variable + "=" + worse.getValuationOfVariable(variable);
 			outcome2 = outcome2 + variable + "=" + better.getValuationOfVariable(variable);
-			/*
-			if(worse.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
-				//outcome1 is worse than outcome2
-				outcome1 = outcome1 + variable + "=" + "1";
-				readableOutcome1 = readableOutcome1 + variable;
-			} else {
-				outcome1 = outcome1 + variable + "=" + "0";
-			}
-
-			if(better.getOutcomeAsSetOfPositiveLiterals().contains(variable)) {
-				//outcome2 is better than outcome1
-				outcome2 = outcome2 + variables[j] + "=" + "1";
-				readableOutcome2 = readableOutcome2 + variable;
-			} else {
-				outcome2 = outcome2 + variables[j] + "=" + "0";
-			}*/
+			
 		}
 		//CTL property specifying that there is no path from outcome1 to outcome 2 (outcome2 is better than outcome1) 	
-//		spec = SpecHelper.getCTLSpec("(("+ outcome1 + " -> !EX EF (" + outcome2 + "))) ","counterExampleForDominanceTest"," (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
-		spec = SpecHelper.getCTLSpec("(("+ outcome1 + /*" & " + SpecHelper.getInitChangeVariablesCondition() +*/ " -> !EX EF (" + outcome2 + "))) ","dominance","-- "+ " (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
+		spec = SpecHelper.getCTLSpec("(("+ outcome1 + " -> !EX EF (" + outcome2 + "))) ","counterExampleForDominanceTest"," (" + readableOutcome1 + ") -> (" + readableOutcome2 + ")");
 		
 		return spec;
 	}

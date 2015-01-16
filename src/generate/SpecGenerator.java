@@ -10,10 +10,10 @@ import java.util.Random;
 import java.util.Set;
 
 import model.Outcome;
-import model.PreferenceQuery.QueryType;
 import model.PreferenceSpecification;
 import model.PreferenceVariable;
 import model.Query;
+import model.QueryType;
 import util.Constants;
 import util.FileUtil;
 import util.OutputUtil;

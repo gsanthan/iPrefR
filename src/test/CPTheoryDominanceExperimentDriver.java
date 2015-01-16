@@ -15,11 +15,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
 import model.Outcome;
-import model.PreferenceQuery;
-import model.PreferenceQuery.QueryType;
 import model.PreferenceSpecification;
 import model.Query;
 import model.QueryResult;
+import model.QueryType;
 
 import org.xml.sax.SAXException;
 
@@ -39,6 +38,7 @@ public class CPTheoryDominanceExperimentDriver {
 
 	
 	public enum REASONING_TASK {DOMINANCE,CONSISTENCY,ORDERING};
+	public String workingDirectory = null;
 	
 	public static void main(String[] args) throws Exception {
 
@@ -61,7 +61,7 @@ public class CPTheoryDominanceExperimentDriver {
 	
 	
 	public void serveInitialMenu() throws Exception {
-		String workingDirectory = "";
+		workingDirectory = "";
 		File f = null;
 		
 		do {
@@ -82,7 +82,6 @@ public class CPTheoryDominanceExperimentDriver {
 		
 		do {
 			xmlFile = workingDirectory + File.separator + readFromConsole("Enter the location of the XML file: ");
-			Constants.QUERY_FILE = xmlFile;
 			f = new File(xmlFile);
 			if(!f.exists()) {
 				OutputUtil.println(xmlFile + " does not exist.");
@@ -110,11 +109,11 @@ public class CPTheoryDominanceExperimentDriver {
 			} else {
 				Query q = null;
 				OutputUtil.println("Parsing query specification ... "+xmlFile);
-				q = PreferenceQueryParser.parsePreferenceQuery(xmlFile);
-				executeQuery(q);
+				q = PreferenceQueryParser.parseQuery(xmlFile);
+				QueryResult result = executeQuery(q);
+				PreferenceQueryParser.saveQueryResultToFile(result);
 				System.exit(0);
 			}
-			
 		} catch (FileNotFoundException e) {
 			OutputUtil.println("Unable to find/parse file " + xmlFile);
 			e.printStackTrace();
@@ -153,9 +152,14 @@ public class CPTheoryDominanceExperimentDriver {
 			}/*else if(option.equals("3")) {
 				nextPreferredTester(reasoner, ps);
 			}*/else if(option.equals("3")) {
-				String smvFile = translator.convertToSMV(xmlFile, REASONING_TASK.CONSISTENCY, 0);
-				PreferenceReasoner reasoner = new CyclicPreferenceReasoner(smvFile);
-				consistencyTester(reasoner);
+				Query query = new Query(QueryType.CONSISTENCY, ps.getPrefSpecFileName(), null);
+				query.setDefaultQueryFileName();
+				if(query.getQueryFileName() != null) {
+					PreferenceQueryParser.saveQueryToFile(query);
+				}
+				
+				QueryResult result = executeConsistencyTest(query);
+				PreferenceQueryParser.saveQueryResultToFile(result);
 			} else if(option.equals("9")) {
 				OutputUtil.println();
 			} else {
@@ -164,41 +168,79 @@ public class CPTheoryDominanceExperimentDriver {
 		} while (!option.equals("9"));
 	}
 
-	public void executeQuery(Query q) throws PreferenceReasonerException {
-		String smvFile = null;
-		
-		if(q.getQueryType().equals(PreferenceQuery.QueryType.DOMINANCE)) {
+	public QueryResult executeQuery(Query q) throws PreferenceReasonerException {
+		QueryResult result = null;
+		if(q.getQueryType().equals(QueryType.DOMINANCE)) {
 			try {
-				smvFile = new CPTheoryToSMVTranslator().convertToSMV(q.getPreferenceSpecificationFileName(), REASONING_TASK.DOMINANCE, 0);
 			} catch(Exception fe) {
 				fe.printStackTrace();
 				throw new PreferenceReasonerException(ExceptionUtil.getStackTraceAsString(fe));
 			}
-			PreferenceReasoner reasoner = new CyclicPreferenceReasoner(smvFile);
-			executeDominanceTest(reasoner, q);
-		} else if (q.getQueryType().equals(PreferenceQuery.QueryType.CONSISTENCY)) {
+			result = executeDominanceTest(q);
+		} else if (q.getQueryType().equals(QueryType.CONSISTENCY)) {
 			try {
-				smvFile = new CPTheoryToSMVTranslator().convertToSMV(q.getPreferenceSpecificationFileName(), REASONING_TASK.CONSISTENCY, 0);
 			} catch(Exception fe) {
 				throw new PreferenceReasonerException(ExceptionUtil.getStackTraceAsString(fe));
 			}
-			PreferenceReasoner reasoner = new CyclicPreferenceReasoner(smvFile);
-			executeConsistencyTest(reasoner);
+			result = executeConsistencyTest(q);
 		}
+		result.setQueryFile(q.getQueryFileName());
+		return result;
 	}
 
-	public void executeConsistencyTest(PreferenceReasoner reasoner) {
+	public QueryResult executeConsistencyTest(Query query) throws PreferenceReasonerException {
+		
+		QueryResult result = null;
 		try {
-			QueryResult result = reasoner.isConsistent();
+			PreferenceReasoner reasoner = getReasonerForQuery(query);
+			result = reasoner.isConsistent();
+			result.setQueryFile(query.getQueryFileName());
 			OutputUtil.println(result.getQueryResultAsText());
 		} catch (Exception e) {
 			OutputUtil.println("Error evaluating consistency: ");
 			e.printStackTrace();
 		}
+		return result;
+	}
+
+	public QueryResult executeDominanceTest(Query query) {
+		Outcome betterOutcome = null;
+		Outcome worseOutcome = null;
+		QueryResult result = null;
+		try {
+			Constants.OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT = true;
+			for(Outcome o : query.getOutcomes()) {
+				if(o.getLabel().equalsIgnoreCase("BETTER")) {
+					betterOutcome = o;
+				}
+				if(o.getLabel().equalsIgnoreCase("WORSE")) {
+					worseOutcome = o;
+				}
+			}
+			PreferenceReasoner reasoner = getReasonerForQuery(query);
+			 result = reasoner.dominates(betterOutcome, worseOutcome);
+			 result.setQueryFile(query.getQueryFileName());
+			 OutputUtil.println(result.getQueryResultAsText());
+			 PreferenceQueryParser.saveQueryResultToFile(result);
+		} catch (PreferenceReasonerException pe) {
+			OutputUtil.println("Error evaluating dominance: ");
+			pe.printStackTrace();
+			System.out.println(ExceptionUtil.getStackTraceAsString(pe));
+		} catch (Exception e) {
+			OutputUtil.println("Error evaluating dominance: ");
+			e.printStackTrace();
+			System.out.println(ExceptionUtil.getStackTraceAsString(e));
+		}
+		
+		return result;
 	}
 	
-	public void consistencyTester(PreferenceReasoner reasoner) {
-		executeConsistencyTest(reasoner);
+	public PreferenceReasoner getReasonerForQuery(Query query)
+			throws ParserConfigurationException, SAXException, IOException,
+			XPathExpressionException {
+		String smvFile = new CPTheoryToSMVTranslator().convertToSMV(query.getPreferenceSpecificationFileName(), REASONING_TASK.CONSISTENCY, 0);
+		PreferenceReasoner reasoner = new CyclicPreferenceReasoner(smvFile);
+		return reasoner;
 	}
 	
 	public void loopedDominanceTest(PreferenceSpecification ps) throws Exception {
@@ -206,6 +248,7 @@ public class CPTheoryDominanceExperimentDriver {
 		String more = null;
 		do {
 		
+			
 			Map<String, String> morePreferredAlternative = new HashMap<String,String>();
 			Map<String, String> lessPreferredAlternative = new HashMap<String,String>();
 			
@@ -233,46 +276,28 @@ public class CPTheoryDominanceExperimentDriver {
 			outcomesForDominanceTest.add(lessPreferredOutcome);
 			
 			Query query = new Query(QueryType.DOMINANCE,ps.getPrefSpecFileName(),outcomesForDominanceTest);
+
+			String queryFileName = readFromConsole("Please specify a file name to save query (optional): ");
+			if(queryFileName != null && queryFileName.trim().length()>0) {
+				query.setQueryFileName(workingDirectory + File.separator + queryFileName);
+			} else {
+				query.setDefaultQueryFileName();
+			}
 			
-			executeQuery(query);
+			PreferenceQueryParser.saveQueryToFile(query);
+			QueryResult result = executeQuery(query);
+			PreferenceQueryParser.saveQueryResultToFile(result);
 			
 			do {
 				more = readFromConsole("Continue with another dominance test? [Y/N] ");
 			} while(!more.equalsIgnoreCase("y") && !more.equalsIgnoreCase("n"));
 		} while (more.equalsIgnoreCase("y"));
-	}
+	}	
 
-	public QueryResult executeDominanceTest(PreferenceReasoner reasoner, Query query) {
-		Outcome betterOutcome = null;
-		Outcome worseOutcome = null;
-		QueryResult result = null;
-		try {
-			Constants.OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT = true;
-			for(Outcome o : query.getOutcomes()) {
-				if(o.getLabel().equalsIgnoreCase("BETTER")) {
-					betterOutcome = o;
-				}
-				if(o.getLabel().equalsIgnoreCase("WORSE")) {
-					worseOutcome = o;
-				}
-			}
-			 result = reasoner.dominates(betterOutcome, worseOutcome);
-			OutputUtil.println(result.getQueryResultAsText());
-		} catch (PreferenceReasonerException pe) {
-			OutputUtil.println("Error evaluating dominance: ");
-			pe.printStackTrace();
-			System.out.println(ExceptionUtil.getStackTraceAsString(pe));
-		} catch (Exception e) {
-			OutputUtil.println("Error evaluating dominance: ");
-			e.printStackTrace();
-			System.out.println(ExceptionUtil.getStackTraceAsString(e));
-		}
-		
-		return result;
-	}
 	
 	public void dominancePerformanceTester(PreferenceReasoner reasoner, PreferenceSpecification prefSpec) throws Exception {
-		String dominanceProof = readFromConsole("Compute proof of dominance? (Y/N) ");
+//		String dominanceProof = readFromConsole("Compute proof of dominance? (Y/N) ");
+		String dominanceProof = "Y";
 		Constants.OBTAIN_PROOF_OF_DOMINANCE_BY_DEFAULT = dominanceProof.trim().equalsIgnoreCase("Y")?true:false;
 		
 		int numSpecs = 0;
@@ -293,10 +318,15 @@ public class CPTheoryDominanceExperimentDriver {
 		List<Query> queries = specGen.createRandomDominanceTestSpecsSize(prefSpec, numSpecs);
 		int specIndex = 0;
 		for(Query query : queries) {
+			
+			query.setQueryFileName(prefSpec.getPrefSpecFileName()+"-query"+(specIndex+1)+".xml");
+			PreferenceQueryParser.saveQueryToFile(query);
+			
 			long timer = System.currentTimeMillis();
-			Constants.BATCH_QUERY_INDEX = specIndex + 1;
-			QueryResult result = executeDominanceTest(reasoner, query);
+			QueryResult result = executeQuery(query);
 			long fullTime = (System.currentTimeMillis() - timer);
+			PreferenceQueryParser.saveQueryResultToFile(result);
+			
 			totalTime += fullTime;
 			String[] words = new String[]{"QUERY ", (specIndex+1)+"   ", result.getResult()+"", fullTime+"   ", "ms"};
 			int[] padLengths = new int[]{7, 7, 10, 10, 3};
@@ -304,7 +334,6 @@ public class CPTheoryDominanceExperimentDriver {
 			OutputUtil.println(resultString);
 			specIndex++;
 		}	
-		Constants.BATCH_QUERY_INDEX = 1;
 		OutputUtil.println();
 		OutputUtil.println("Average time per dominance test: " + (totalTime/numSpecs) + " ms");
 	}

@@ -1,19 +1,21 @@
 package model;
 
-import java.util.HashSet;
 import java.util.Set;
-
-import model.PreferenceQuery.QueryType;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import exception.PreferenceReasonerException;
 
 @XStreamAlias("PREFERENCE-QUERY")
 public class Query {
 
+	@XStreamOmitField
 	QueryType qt = null;
+	
+	@XStreamAlias("QUERY-FILE")
+	String queryFileName = null;
 	
 	@XStreamAlias("PREFERENCE-SPECIFICATION-FILENAME")
 	String preferenceSpecificationFileName;
@@ -33,10 +35,6 @@ public class Query {
 		this.preferenceSpecificationFileName = preferenceSpecificationFileName;
 	}
 
-	public Query() {
-		outcomes = new HashSet<Outcome>();
-	}
-
 	public Query(QueryType qt, String preferenceSpecFileName, Set<Outcome> outcomes) {
 		this.qt = qt;
 		this.preferenceSpecificationFileName = preferenceSpecFileName;
@@ -44,15 +42,31 @@ public class Query {
 		this.parsedQueryType = qt.toString()+"";
 	}
 	
+	public Query(String queryFileName, QueryType qt, String preferenceSpecFileName, Set<Outcome> outcomes) {
+		this.qt = qt;
+		this.queryFileName = queryFileName;
+		this.preferenceSpecificationFileName = preferenceSpecFileName;
+		this.outcomes = outcomes;
+		this.parsedQueryType = qt.toString()+"";
+	}
+	
+	public String getQueryFileName() {
+		return queryFileName;
+	}
+
+	public void setQueryFileName(String queryFileName) {
+		this.queryFileName = queryFileName;
+	}
+
 	public void setQueryType(QueryType queryType) {
 		qt = queryType;
 	}
 	
 	public QueryType getQueryType() throws PreferenceReasonerException {
 		if(parsedQueryType.equalsIgnoreCase("DOMINANCE")) {
-			qt = PreferenceQuery.QueryType.DOMINANCE;
+			qt = QueryType.DOMINANCE;
 		} else if (parsedQueryType.equalsIgnoreCase("CONSISTENCY")) {
-			qt = PreferenceQuery.QueryType.CONSISTENCY;
+			qt = QueryType.CONSISTENCY;
 		} else {
 			throw new PreferenceReasonerException("Invalid query type: "+parsedQueryType);
 		}
@@ -66,9 +80,9 @@ public class Query {
 	public void setParsedQueryType(String parsedQueryType) throws PreferenceReasonerException {
 		this.parsedQueryType = parsedQueryType;
 		if(parsedQueryType.equalsIgnoreCase("DOMINANCE")) {
-			qt = PreferenceQuery.QueryType.DOMINANCE;
+			qt = QueryType.DOMINANCE;
 		} else if (parsedQueryType.equalsIgnoreCase("CONSISTENCY")) {
-			qt = PreferenceQuery.QueryType.CONSISTENCY;
+			qt = QueryType.CONSISTENCY;
 		} else {
 			throw new PreferenceReasonerException("Invalid query type: "+parsedQueryType);
 		}
@@ -88,6 +102,16 @@ public class Query {
 			o.print();
 		}
 		System.out.println();
+	}
+
+	public void setDefaultQueryFileName() throws PreferenceReasonerException {
+		if(getQueryType().equals(QueryType.CONSISTENCY)) {
+			setQueryFileName(getPreferenceSpecificationFileName()+"-consistencyquery.xml");
+		} else if(getQueryType().equals(QueryType.DOMINANCE)) {
+			setQueryFileName(getPreferenceSpecificationFileName()+"-dominancequery.xml");
+		} else {
+			setQueryFileName(getPreferenceSpecificationFileName()+"-unknownquery.xml");
+		}
 	}
 
 }
